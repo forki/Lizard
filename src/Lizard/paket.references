@@ -1,6 +1,5 @@
 group Build
 	DockPanelSuite
-	FParsec-Big-Data-Edition
 	FsPickler
 	FsPickler.Json
 	Http.fs

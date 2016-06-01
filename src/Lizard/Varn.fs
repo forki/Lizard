@@ -249,7 +249,8 @@ module Varn =
                           else bfol), nm + ".pgn")
         
         let pgns = Posn.loadPGN pfn
-        let brchs = pgns |> List.map Posn.pgn2pos
+        //TODO
+        let brchs = [] //pgns |> List.map Posn.pgn2pos
         { Name = nm
           Isw = isw
           Brchs = brchs }

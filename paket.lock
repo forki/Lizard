@@ -9,20 +9,17 @@ NUGET
   specs:
     DockPanelSuite (2.9)
     FAKE (4.28)
-    FParsec-Big-Data-Edition (1.0.1)
     FSharp.Compiler.Service (2.0.0.6)
     FSharp.Formatting (2.14.3)
       FSharp.Compiler.Service (2.0.0.6)
       FSharpVSPowerTools.Core (>= 2.3 < 2.4)
     FSharpVSPowerTools.Core (2.3)
       FSharp.Compiler.Service (>= 2.0.0.3)
-    FsPickler (1.4)
-    FsPickler.Json (1.4)
-      FsPickler (1.4)
+    FsPickler (2.2)
+    FsPickler.Json (2.2)
+      FsPickler (2.2)
       Newtonsoft.Json (>= 6.0.5)
-    FsUnit (1.2.1)
-      NUnit (>= 2.6.2)
-    Http.fs (1.4)
+    Http.fs (1.5.1)
     Microsoft.Bcl (1.1.10) - framework: net10, net11, net20, net30, net35, net40, net40-full
       Microsoft.Bcl.Build (>= 1.0.14)
     Microsoft.Bcl.Build (1.0.21) - import_targets: false, framework: net10, net11, net20, net30, net35, net40, net40-full
@@ -30,12 +27,10 @@ NUGET
       Microsoft.Bcl (>= 1.1.10)
       Microsoft.Bcl.Build (>= 1.0.14)
     Newtonsoft.Json (8.0.3)
-    NUnit (3.2.1)
     Octokit (0.19)
-      Microsoft.Net.Http  - framework: net10, net11, net20, net30, net35, net40, net40-full
+      Microsoft.Net.Http
     SourceGrid (4.4)
     SourceLink.Fake (1.1)
-    Unquote (2.2.2)
 GITHUB
   remote: fsharp/FAKE
   specs:

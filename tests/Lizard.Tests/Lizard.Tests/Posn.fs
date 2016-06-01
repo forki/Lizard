@@ -16,10 +16,12 @@ let weprPgn =
 
 [<Test>]
 let ``Posn pgn2pos wepr``() =
-     let gms = LizardChess.PgnParser.ReadFromString weprPgn
-     let pos = pgn2pos gms.Head
-     let lmv = pos.Mhst.Head
-     lmv.PGN|> should equal "dxe6"
+     let gms = Lizard.PGN.ReadFromString weprPgn
+     let gm = gms.Head
+     gm.Moves.Head.Mpgn|>should equal "d4"
+     let rmvs = gm.Moves|>List.rev
+     let lmv = rmvs.Head
+     lmv.Mpgn|> should equal "dxe6"
 
 let weplPgn = 
     "[Event \"?\"]
@@ -33,10 +35,12 @@ let weplPgn =
 
 [<Test>]
 let ``Posn pgn2pos wepl``() =
-     let gms = LizardChess.PgnParser.ReadFromString weplPgn
-     let pos = pgn2pos gms.Head
-     let lmv = pos.Mhst.Head
-     lmv.PGN|> should equal "dxc6"
+     let gms = Lizard.PGN.ReadFromString weplPgn
+     let gm = gms.Head
+     gm.Moves.Head.Mpgn|>should equal "d4"
+     let rmvs = gm.Moves|>List.rev
+     let lmv = rmvs.Head
+     lmv.Mpgn|> should equal "dxc6"
 
 let beprPgn = 
     "[Event \"?\"]
@@ -50,10 +54,12 @@ let beprPgn =
 
 [<Test>]
 let ``Posn pgn2pos bepr``() =
-     let gms = LizardChess.PgnParser.ReadFromString beprPgn
-     let pos = pgn2pos gms.Head
-     let lmv = pos.Mhst.Head
-     lmv.PGN|> should equal "exf3"
+     let gms = Lizard.PGN.ReadFromString beprPgn
+     let gm = gms.Head
+     gm.Moves.Head.Mpgn|>should equal "c3"
+     let rmvs = gm.Moves|>List.rev
+     let lmv = rmvs.Head
+     lmv.Mpgn|> should equal "exf3"
 
 let beplPgn = 
     "[Event \"?\"]
@@ -67,7 +73,9 @@ let beplPgn =
 
 [<Test>]
 let ``Posn pgn2pos bepl``() =
-     let gms = LizardChess.PgnParser.ReadFromString beplPgn
-     let pos = pgn2pos gms.Head
-     let lmv = pos.Mhst.Head
-     lmv.PGN|> should equal "exd3"
+     let gms = Lizard.PGN.ReadFromString beplPgn
+     let gm = gms.Head
+     gm.Moves.Head.Mpgn|>should equal "c3"
+     let rmvs = gm.Moves|>List.rev
+     let lmv = rmvs.Head
+     lmv.Mpgn|> should equal "exd3"

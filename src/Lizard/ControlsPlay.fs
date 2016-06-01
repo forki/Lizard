@@ -534,8 +534,9 @@ module ControlsPlay =
             this.Controls.Add(pnl1)
             //events
             dg.Selection.SelectionChanged.Add(selgm)
-            gstt.DbGameLoad |> Observable.add updgm
-            gstt.DbLoad |> Observable.add upddg
+            //TODO
+//            gstt.DbGameLoad |> Observable.add updgm
+//            gstt.DbLoad |> Observable.add upddg
             homeb.Click.Add(fun _ -> donav (Home))
             prevb.Click.Add(fun _ -> donav (Prev))
             nextb.Click.Add(fun _ -> donav (Next))

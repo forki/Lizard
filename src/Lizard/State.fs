@@ -582,13 +582,14 @@ and GameState(sst:SharedState) =
         let wtm, btm, mv, misw = Fics.tmMove (buf)
         (wtm, btm, misw) |> ftimEvt.Trigger
         let visw = vstt.VarIsw
-        if misw = visw then 
-            let pgnmv = PgnParser.getpgnmv mv
+        if misw = visw then
+        //TODO 
+//            let pgnmv = Lizard.PGN.PgnParser.getpgnmv mv
+//            let pos = pstt.CurPos
+//            let fmv = Posn.pgn2mov pos pgnmv
+//            pstt.SetPos(Posn.DoMove(fmv, pos))
             let pos = pstt.CurPos
-            let fmv = Posn.pgn2mov pos pgnmv
-            pstt.SetPos(Posn.DoMove(fmv, pos))
-            let pos = pstt.CurPos
-            [ fmv ] |> tosqEvt.Trigger
+//            [ fmv ] |> tosqEvt.Trigger
             let mvstr = pos.Mhst.Head.PGN
             gm <- gm 
                     + (if visw then ""
@@ -740,7 +741,8 @@ and GameState(sst:SharedState) =
         pgngms |> dbldEvt.Trigger
     member x.LoadPgnGame(rw) = 
         let pstt = sst.Pstt
-        if pgngms.Length > 0 then pstt.SetPos(Posn.pgn2pos pgngms.[rw - 1])
+        //TODO
+//        if pgngms.Length > 0 then pstt.SetPos(Posn.pgn2pos pgngms.[rw - 1])
         let pos = pstt.CurPos
         gm <- Posn.psn2pgn pos
         (gm, pgngms.[rw - 1]) |> dbgmldEvt.Trigger

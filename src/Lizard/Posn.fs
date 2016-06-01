@@ -623,7 +623,7 @@ module Posn =
     let loadPGN nm = 
         let opts = Opts.load()
         let pgnfil = Path.Combine(opts.Gmfol, nm)
-        let gms = PgnParser.ReadFromFile pgnfil
+        let gms = Lizard.PGN.ReadFromFile pgnfil
         gms
 
     let PgnTo fmvs sqto =

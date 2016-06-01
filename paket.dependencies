@@ -5,14 +5,10 @@ nuget FSharp.Core redirects: force
 group Build
   source https://nuget.org/api/v2
   
-	nuget DockPanelSuite 2.9.0.0
-	nuget FParsec-Big-Data-Edition 1.0.1
-	nuget FsPickler 1.4.0
-	nuget FsPickler.Json 1.4.0
-	nuget FsUnit 1.2.1.0
-	nuget Http.fs 1.4.0
-	nuget SourceGrid 4.4.0
-	nuget Unquote 2.2.2
+	nuget DockPanelSuite
+	nuget FsPickler.Json
+	nuget Http.fs
+	nuget SourceGrid
 
 	nuget SourceLink.Fake
 	nuget FAKE

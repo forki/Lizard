@@ -105,7 +105,7 @@ module Types =
           Dte : DateTime
           Res : int }
     
-    //linstr - store of anlysis
+    //linstr - store of analysis
     type Linstr = System.Collections.Generic.Dictionary<string, string>
     
     //enganl - record of engine analysis results

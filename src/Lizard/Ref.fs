@@ -320,5 +320,3 @@ module Ref =
                  if f.[i] <> "h" && r = "4" then i - 7
                  else -1)
     
-    // storage related items
-    let basefold = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "LizardChess")

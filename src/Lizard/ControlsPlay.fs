@@ -270,8 +270,9 @@ module ControlsPlay =
                 [ "Message" ] |> List.iteri addhdr
                 dg.Columns.[0].Width <- 1000
                 let nl = System.Environment.NewLine
-                gmrt.Text <- "White: " + ghdr.White + " Black: " + ghdr.Black 
-                             + nl + gm + " " + ghdr.Result.ToString()
+                ()
+//                gmrt.Text <- "White: " + ghdr.White + " Black: " + ghdr.Black 
+//                             + nl + gm + " " + ghdr.Result.ToString()
             if (this.InvokeRequired) then 
                 try 
                     this.Invoke(MethodInvoker(upd)) |> ignore
@@ -323,8 +324,9 @@ module ControlsPlay =
         let updgm (gm, ghdr) = 
             let upd() = 
                 let nl = System.Environment.NewLine
-                gmrt.Text <- "White: " + ghdr.White + " Black: " + ghdr.Black 
-                             + nl + gm + " " + ghdr.Result.ToString()
+                ()
+//                gmrt.Text <- "White: " + ghdr.White + " Black: " + ghdr.Black 
+//                             + nl + gm + " " + ghdr.Result.ToString()
             if (this.InvokeRequired) then 
                 try 
                     this.Invoke(MethodInvoker(upd)) |> ignore
@@ -467,7 +469,7 @@ module ControlsPlay =
             if (e.KeyCode = Keys.Left) then donav (PrevL)
             if (e.KeyCode = Keys.Right) then donav (NextL)
         
-        let upddg (gms : Pgngm list) = 
+        let upddg (gms : Lizard.PGN.Game list) = 
             dg.Rows.Clear()
             dg.Rows.Insert(0)
             dg.ColumnsCount <- 8
@@ -483,19 +485,19 @@ module ControlsPlay =
                 dg.[r, c + 1].View <- if (c + 1) % 2 = 0 then viewCell1
                                       else viewCell2
             
-            let addr r (gm : Pgngm) = 
+            let addr r (gm : Lizard.PGN.Game) = 
                 dg.Rows.Insert(r + 1)
                 let rowheader = 
                     new SourceGrid.Cells.Cell(r + 1, typedefof<string>)
                 rowheader.View <- viewRowHeader
                 dg.[r + 1, 0] <- rowheader
-                gm.Phdr.White |> addcell (r + 1) 0
-                gm.Phdr.Black |> addcell (r + 1) 1
-                gm.Phdr.Event |> addcell (r + 1) 2
-                gm.Phdr.Site |> addcell (r + 1) 3
-                gm.Phdr.Round |> addcell (r + 1) 4
-                gm.Phdr.Date |> addcell (r + 1) 5
-                gm.Phdr.Result.ToString() |> addcell (r + 1) 6
+                gm.White |> addcell (r + 1) 0
+                gm.Black |> addcell (r + 1) 1
+                gm.Event |> addcell (r + 1) 2
+                gm.Site |> addcell (r + 1) 3
+                gm.Round |> addcell (r + 1) 4
+                gm.DateStr |> addcell (r + 1) 5
+                gm.Result.ToString() |> addcell (r + 1) 6
             
             gms |> List.iteri addr
             dg.AutoSizeCells()
@@ -503,12 +505,12 @@ module ControlsPlay =
                 let np = new Position(1, 1)
                 dg.Selection.Focus(np, true) |> ignore
         
-        let updgm (gm, pgngm) = 
+        let updgm (gm, pgngm:Lizard.PGN.Game) = 
             let upd() = 
                 let nl = System.Environment.NewLine
-                gmrt.Text <- "White: " + pgngm.Phdr.White + " Black: " 
-                             + pgngm.Phdr.Black + nl + gm + " " 
-                             + pgngm.Phdr.Result.ToString()
+                gmrt.Text <- "White: " + pgngm.White + " Black: " 
+                             + pgngm.Black + nl + gm + " " 
+                             + pgngm.Result.ToString()
             if (this.InvokeRequired) then 
                 try 
                     this.Invoke(MethodInvoker(upd)) |> ignore

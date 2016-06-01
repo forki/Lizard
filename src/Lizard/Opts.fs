@@ -5,7 +5,7 @@ open System.IO
 
 module Opts = 
     //STORAGE elements
-    let optfile = Path.Combine(System.Reflection.Assembly.GetExecutingAssembly().Location, "Options.json")
+    let optfile = Path.Combine(Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location), "Options.json")
     let json = FsPickler.CreateJsonSerializer()
     
     ///load - get stored options 

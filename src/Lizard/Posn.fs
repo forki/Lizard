@@ -630,42 +630,42 @@ module Posn =
         let fmvs1 = fmvs |> List.filter (fun m -> m.To = sqto)
         if fmvs1.Length = 0 then failwith "No moves found"
         else fmvs1
-    let PgnFrom fmvs pgnmv =
-        let fmvs1 = 
-            if pgnmv.Mfrom <> -1 then 
-                fmvs |> List.filter (fun m -> m.From = pgnmv.Mfrom)
-            else fmvs
-        if fmvs1.Length = 0 then failwith "No moves found"
-        else fmvs1
-    let PgnfFrom fmvs pgnmv =
-        let fmvs1 = 
-            if pgnmv.Mffrom <> -1 then 
-                fmvs 
-                |> List.filter 
-                        (fun m -> Ref.fi.[m.From] = pgnmv.Mffrom)
-            else fmvs
-        if fmvs1.Length = 0 then failwith "No moves found"
-        else fmvs1
-    let PgnrFrom fmvs pgnmv =
-        let fmvs1 = 
-            if pgnmv.Mrfrom <> -1 then 
-                fmvs 
-                |> List.filter 
-                        (fun m -> 
-                        Ref.ri.[m.From] = pgnmv.Mrfrom)
-            else fmvs
-        if fmvs1.Length = 0 then failwith "No moves found"
-        else fmvs1
-    let PgnType fmvs pgnmv =
-        let fmvs1 = 
-            if pgnmv.Mtyp <> NullMove then 
-                fmvs 
-                |> List.filter 
-                        (fun m -> m.MvName = pgnmv.Mtyp)
-            else fmvs
-        if fmvs1.Length = 0 then 
-            failwith "No moves found"
-        else fmvs1
+//    let PgnFrom fmvs pgnmv =
+//        let fmvs1 = 
+//            if pgnmv.Mfrom <> -1 then 
+//                fmvs |> List.filter (fun m -> m.From = pgnmv.Mfrom)
+//            else fmvs
+//        if fmvs1.Length = 0 then failwith "No moves found"
+//        else fmvs1
+//    let PgnfFrom fmvs pgnmv =
+//        let fmvs1 = 
+//            if pgnmv.Mffrom <> -1 then 
+//                fmvs 
+//                |> List.filter 
+//                        (fun m -> Ref.fi.[m.From] = pgnmv.Mffrom)
+//            else fmvs
+//        if fmvs1.Length = 0 then failwith "No moves found"
+//        else fmvs1
+//    let PgnrFrom fmvs pgnmv =
+//        let fmvs1 = 
+//            if pgnmv.Mrfrom <> -1 then 
+//                fmvs 
+//                |> List.filter 
+//                        (fun m -> 
+//                        Ref.ri.[m.From] = pgnmv.Mrfrom)
+//            else fmvs
+//        if fmvs1.Length = 0 then failwith "No moves found"
+//        else fmvs1
+//    let PgnType fmvs pgnmv =
+//        let fmvs1 = 
+//            if pgnmv.Mtyp <> NullMove then 
+//                fmvs 
+//                |> List.filter 
+//                        (fun m -> m.MvName = pgnmv.Mtyp)
+//            else fmvs
+//        if fmvs1.Length = 0 then 
+//            failwith "No moves found"
+//        else fmvs1
     let PgnValid fmvs pos sqto pc =
         let fmvs1 = 
             fmvs 
@@ -679,83 +679,83 @@ module Posn =
                 ("Too many moves to " + Ref.f.[sqto] 
                     + Ref.r.[sqto] + " for " 
                     + (Piece.letr pc))
-    let Pgn2Main pos pgnmv =
-            let pc = 
-                if pos.IsWhite then pgnmv.MWimg
-                else pgnmv.MWimg + 6
-            
-            let fil1 = pos.Pcs |> List.filter (fun p -> p.Img = pc)
-            let sqto = pgnmv.Mto
-            
-            let fil2 = 
-                if sqto <> -1 && pgnmv.MWimg = 0 then 
-                    fil1 
-                    |> List.filter 
-                           (fun p -> abs (Ref.fi.[p.Sq] - Ref.fi.[sqto]) < 2)
-                else fil1
-            
-            let mvs = 
-                fil2
-                |> List.map (fun p -> GenLazyMoves p pos)
-                |> List.concat
-            
-            if mvs.Length = 0 then failwith "No moves found"
-            elif mvs.Length = 1 then mvs.[0]
-            else 
-                let fmvs = PgnTo mvs sqto
-                if fmvs.Length = 1 then fmvs.[0]
-                else 
-                    //need to apply to, file or rank clarifier
-                    let fmvs1 = PgnFrom fmvs pgnmv
-                    if fmvs1.Length = 1 then fmvs1.[0]
-                    else 
-                        let fmvs2 = PgnfFrom fmvs1 pgnmv
-                        if fmvs2.Length = 1 then fmvs2.[0]
-                        else 
-                            let fmvs3 = PgnrFrom fmvs2 pgnmv
-                            if fmvs3.Length = 1 then fmvs3.[0]
-                            else 
-                                let fmvs4 = PgnType fmvs3 pgnmv
-                                if fmvs4.Length = 1 then fmvs4.[0]
-                                else PgnValid fmvs3 pos sqto pc
-
-    ///get mv given pgn mv and pos
-    let pgn2mov pos pgnmv = 
-        let mvtyp = pgnmv.Mtyp
-        match mvtyp with
-        | CastleK -> 
-            let pcsqord = 
-                if pos.IsWhite then 4
-                else 60
-            CreateMove(pos, CastleK, pcsqord, pcsqord + 2, -1, 0)
-        | CastleQ -> 
-            let pcsqord = 
-                if pos.IsWhite then 4
-                else 60
-            CreateMove(pos, CastleQ, pcsqord, pcsqord - 2, -1, 0)
-        | _ -> 
-            Pgn2Main pos pgnmv
-    
-    ///get pos given pgn
-    let pgn2pos pgn = 
-        let rec getpos pmvl pos = 
-            if List.isEmpty pmvl then pos
-            else 
-                let mt = pmvl.Head
-                match mt with
-                | MovePair(mp) -> 
-                    let wm = mp.MvW
-                    let mv1 = pgn2mov pos mp.MvW
-                    let pos1 = DoMove(mv1, pos)
-                    let mv2 = pgn2mov pos1 mp.MvB
-                    let pos2 = DoMove(mv2, pos1)
-                    getpos pmvl.Tail pos2
-                | SingleMove(sm) -> 
-                    let mv1 = pgn2mov pos sm.Mv
-                    let pos1 = DoMove(mv1, pos)
-                    getpos pmvl.Tail pos1
-                | _ -> getpos pmvl.Tail pos
-        
-        let pmvs = pgn.MoveText
-        let pos = getpos pmvs st
-        pos
+//    let Pgn2Main pos pgnmv =
+//            let pc = 
+//                if pos.IsWhite then pgnmv.MWimg
+//                else pgnmv.MWimg + 6
+//            
+//            let fil1 = pos.Pcs |> List.filter (fun p -> p.Img = pc)
+//            let sqto = pgnmv.Mto
+//            
+//            let fil2 = 
+//                if sqto <> -1 && pgnmv.MWimg = 0 then 
+//                    fil1 
+//                    |> List.filter 
+//                           (fun p -> abs (Ref.fi.[p.Sq] - Ref.fi.[sqto]) < 2)
+//                else fil1
+//            
+//            let mvs = 
+//                fil2
+//                |> List.map (fun p -> GenLazyMoves p pos)
+//                |> List.concat
+//            
+//            if mvs.Length = 0 then failwith "No moves found"
+//            elif mvs.Length = 1 then mvs.[0]
+//            else 
+//                let fmvs = PgnTo mvs sqto
+//                if fmvs.Length = 1 then fmvs.[0]
+//                else 
+//                    //need to apply to, file or rank clarifier
+//                    let fmvs1 = PgnFrom fmvs pgnmv
+//                    if fmvs1.Length = 1 then fmvs1.[0]
+//                    else 
+//                        let fmvs2 = PgnfFrom fmvs1 pgnmv
+//                        if fmvs2.Length = 1 then fmvs2.[0]
+//                        else 
+//                            let fmvs3 = PgnrFrom fmvs2 pgnmv
+//                            if fmvs3.Length = 1 then fmvs3.[0]
+//                            else 
+//                                let fmvs4 = PgnType fmvs3 pgnmv
+//                                if fmvs4.Length = 1 then fmvs4.[0]
+//                                else PgnValid fmvs3 pos sqto pc
+//
+//    ///get mv given pgn mv and pos
+//    let pgn2mov pos pgnmv = 
+//        let mvtyp = pgnmv.Mtyp
+//        match mvtyp with
+//        | CastleK -> 
+//            let pcsqord = 
+//                if pos.IsWhite then 4
+//                else 60
+//            CreateMove(pos, CastleK, pcsqord, pcsqord + 2, -1, 0)
+//        | CastleQ -> 
+//            let pcsqord = 
+//                if pos.IsWhite then 4
+//                else 60
+//            CreateMove(pos, CastleQ, pcsqord, pcsqord - 2, -1, 0)
+//        | _ -> 
+//            Pgn2Main pos pgnmv
+//    
+//    ///get pos given pgn
+//    let pgn2pos pgn = 
+//        let rec getpos pmvl pos = 
+//            if List.isEmpty pmvl then pos
+//            else 
+//                let mt = pmvl.Head
+//                match mt with
+//                | MovePair(mp) -> 
+//                    let wm = mp.MvW
+//                    let mv1 = pgn2mov pos mp.MvW
+//                    let pos1 = DoMove(mv1, pos)
+//                    let mv2 = pgn2mov pos1 mp.MvB
+//                    let pos2 = DoMove(mv2, pos1)
+//                    getpos pmvl.Tail pos2
+//                | SingleMove(sm) -> 
+//                    let mv1 = pgn2mov pos sm.Mv
+//                    let pos1 = DoMove(mv1, pos)
+//                    getpos pmvl.Tail pos1
+//                | _ -> getpos pmvl.Tail pos
+//        
+//        let pmvs = pgn.MoveText
+//        let pos = getpos pmvs st
+//        pos

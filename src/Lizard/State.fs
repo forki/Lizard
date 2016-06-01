@@ -407,7 +407,8 @@ and GameState(sst:SharedState) =
     let mutable _socket : Socket = null
     let mutable _inBuffer : byte [] = null
     let mutable result = ""
-    let mutable ghdr = blankhdr
+    //TODO
+    let mutable ghdr = ()//blankhdr
     //Database
     let mutable pgngms = []
     let mutable pgnmvs = [||]
@@ -447,7 +448,7 @@ and GameState(sst:SharedState) =
         isw |> pstt.TrigOri
         sst.SetMode(DoPlay)
         let opts = Opts.load()
-        ghdr <- Game.getghdr isw opts.Geng
+        //ghdr <- Game.getghdr isw opts.Geng
         gm <- ""
         (gm, ghdr) |> gmchngEvt.Trigger
         let uopn = opts.Guseopn
@@ -492,8 +493,8 @@ and GameState(sst:SharedState) =
                           + (if visw then ""
                              else (pos.Mhst.Length / 2 + 1).ToString() + ". ") 
                           + mvstr + " "
-                    if mvstr.EndsWith("#") then 
-                        ghdr <- { ghdr with Result = if visw then Bwin else Wwin }
+//                    if mvstr.EndsWith("#") then 
+//                        ghdr <- { ghdr with Result = if visw then Bwin else Wwin }
                     (gm, ghdr) |> gmchngEvt.Trigger
                     if uopn then 
                         let curv = vstt.CurVarn
@@ -569,10 +570,10 @@ and GameState(sst:SharedState) =
         true
     member x.DoFicsEnd(buf:string) =
         result <- buf.Split([| '}' |]).[1].Substring(1, 3)
-        ghdr <- { ghdr with Result = 
-                                if result = "1-0" then Wwin
-                                elif result = "0-1" then Bwin
-                                else Draw }
+//        ghdr <- { ghdr with Result = 
+//                                if result = "1-0" then Wwin
+//                                elif result = "0-1" then Bwin
+//                                else Draw }
         (gm, ghdr) |> gmchngEvt.Trigger
         fendEvt.Trigger()
         false
@@ -595,8 +596,8 @@ and GameState(sst:SharedState) =
                     + (if visw then ""
                         else (pos.Mhst.Length / 2 + 1).ToString() + ". ") 
                     + mvstr + " "
-            if mvstr.EndsWith("#") then 
-                ghdr <- { ghdr with Result = if visw then Bwin else Wwin }
+//            if mvstr.EndsWith("#") then 
+//                ghdr <- { ghdr with Result = if visw then Bwin else Wwin }
             (gm, ghdr) |> gmchngEvt.Trigger
             if pos.Mhst.Head.PGN.EndsWith("#") then 
                 fendEvt.Trigger()
@@ -732,8 +733,8 @@ and GameState(sst:SharedState) =
         let pos = pstt.CurPos
         let mode = sst.Mode
         match mode with
-        | DoPlay -> Game.updPGN pos (ghdr : Gmhdr) "EngGames.pgn"
-        | DoFics -> Game.updPGN pos (ghdr : Gmhdr) "FicsGames.pgn"
+//        | DoPlay -> Game.updPGN pos (ghdr : Gmhdr) "EngGames.pgn"
+//        | DoFics -> Game.updPGN pos (ghdr : Gmhdr) "FicsGames.pgn"
         | _ -> ()
     member x.OpenPGN(nm) = 
         pgngms <- Posn.loadPGN nm
@@ -825,8 +826,8 @@ and SharedState() as x =
             let mvstr = pos.Mhst.Head.PGN
             gstt.SetGm(gstt.Gm + (if visw then (pos.Mhst.Length / 2 + 1).ToString() + ". "
                         else "") + mvstr + " ")
-            if mvstr.EndsWith("#") then 
-                gstt.SetGhdr({ gstt.Ghdr with Result = if visw then Wwin else Bwin })
+//            if mvstr.EndsWith("#") then 
+//                gstt.SetGhdr({ gstt.Ghdr with Result = if visw then Wwin else Bwin })
             (gstt.Gm, gstt.Ghdr) |> gstt.TrigGmChng
             gstt.AnlPos()
         | DoFics -> 
@@ -835,8 +836,8 @@ and SharedState() as x =
             let mvstr = pos.Mhst.Head.PGN
             gstt.SetGm(gstt.Gm + (if visw then (pos.Mhst.Length / 2 + 1).ToString() + ". "
                         else "") + mvstr + " ")
-            if mvstr.EndsWith("#") then 
-                gstt.SetGhdr({ gstt.Ghdr with Result = if visw then Wwin else Bwin })
+//            if mvstr.EndsWith("#") then 
+//                gstt.SetGhdr({ gstt.Ghdr with Result = if visw then Wwin else Bwin })
             (gstt.Gm, gstt.Ghdr) |> gstt.TrigGmChng
             //remove promotion as FICS defaults to Q unless you send "promote n"
             //see http://www.freechess.org/Help/HelpFiles/promote.html 

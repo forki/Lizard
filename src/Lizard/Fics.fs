@@ -20,10 +20,12 @@ module Fics =
         let lines = str.Split([| "\n\r" |], StringSplitOptions.None)
         let line = lines |> Array.filter (fun l -> l.StartsWith("Creating:"))
         let bits = line.[0].Split([| ' ' |])
-        { blankhdr with White = bits.[1] + bits.[2]
-                        Black = bits.[3] + bits.[4]
-                        Date = DateTime.Now.ToString("yyyy.MM.dd") }
-    
+        ()
+        //TODO
+//        { blankhdr with White = bits.[1] + bits.[2]
+//                        Black = bits.[3] + bits.[4]
+//                        Date = DateTime.Now.ToString("yyyy.MM.dd") }
+
     //get move
     let tmMove (str : string) = 
         let lines = str.Split([| "\n\r" |], StringSplitOptions.None)

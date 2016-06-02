@@ -4,7 +4,7 @@ open System.Windows.Forms
 open System.Drawing
 open SourceGrid
 open State
-open LizardChess.Types
+open Lizard.Types
 
 module Dialogs = 
     //dialog for Promotion
@@ -34,8 +34,8 @@ module Dialogs =
                             else Color.PaleGreen
             sq.Top <- 1
             sq.Left <- i * 42 + 1
-            sq.Image <- if mvs.[0].IsW then wpcims.[i]
-                        else bpcims.[i]
+//            sq.Image <- if mvs.[0].IsW then wpcims.[i]
+//                        else bpcims.[i]
             //events
             sq.Click.Add(fun e -> 
                 pstt.Promote(mvs.[i])
@@ -152,7 +152,7 @@ module Dialogs =
             let txted = new Cells.Editors.TextBox(typedefof<string>)
             let enged = 
                 new Cells.Editors.ComboBox(typedefof<string>, 
-                                           LizardChess.Eng.engines(), true)
+                                           Lizard.Eng.engines(), true)
             let tfed = 
                 new Cells.Editors.ComboBox(typedefof<string>, 
                                            [| "False"; "True" |], true)

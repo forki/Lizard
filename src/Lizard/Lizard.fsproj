@@ -129,16 +129,11 @@
     <EmbeddedResource Include="Images\openred.png" />
     <EmbeddedResource Include="Images\convert.png" />
     <Compile Include="AssemblyInfo.fs" />
-    <Compile Include="Types2.fs" />
+    <Compile Include="Types.fs" />
     <Compile Include="Pos.fs" />
     <Compile Include="PGN.fs" />
-    <Compile Include="Types.fs" />
     <Compile Include="Ref.fs" />
     <Compile Include="Opts.fs" />
-    <Compile Include="Piece.fs" />
-    <Compile Include="Mov.fs" />
-    <Compile Include="Posn.fs" />
-    <Compile Include="Db.fs" />
     <Compile Include="Varn.fs" />
     <Compile Include="Test.fs" />
     <Compile Include="Eng.fs" />

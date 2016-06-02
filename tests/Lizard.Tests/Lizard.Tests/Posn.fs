@@ -2,7 +2,6 @@
 
 open FsUnit
 open NUnit.Framework
-open LizardChess.Posn
 
 let weprPgn = 
     "[Event \"?\"]

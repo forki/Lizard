@@ -1,4 +1,4 @@
-namespace LizardChess
+namespace Lizard
 
 open System
 open System.IO

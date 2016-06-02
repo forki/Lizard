@@ -1,4 +1,4 @@
-namespace LizardChess
+namespace Lizard
 
 open System
 open System.IO
@@ -16,40 +16,18 @@ module Varn =
           Brchs = [] }
     
     ///findsv - finds the selvar given posn and set of posns
-    let findsv (mb : Posn) (curbs : Posn list) = 
-        let mba = 
-            mb.Mhst
-            |> List.rev
-            |> List.toArray
-        
+    let findsv (mb : Move list) (curbs : Move list list) = 
         //function to find match
-        let mtch psn = 
-            let curba = 
-                psn.Mhst
-                |> List.rev
-                |> List.toArray
-            curba.Length >= mba.Length && curba.[0..mba.Length - 1] = mba
-        
+        let mtch (mvl : Move list) = mvl.Length >= mb.Length && mvl.[0..mb.Length - 1] = mb
         curbs |> List.tryFindIndex mtch
     
     ///findnmvs - finds the next moves given posn and set of posns
-    let findnmvs (mb : Posn) (curbs : Posn list) = 
-        let mba = 
-            mb.Mhst
-            |> List.rev
-            |> List.toArray
-        
+    let findnmvs (mb : Move list) (curbs : Move list list) = 
         //function to find match with extra move
-        let mtch psn = 
-            let curba = 
-                psn.Mhst
-                |> List.rev
-                |> List.toArray
-            curba.Length > mba.Length && curba.[0..mba.Length - 1] = mba
-        
+        let mtch (mvl : Move list) = mvl.Length > mb.Length && mvl.[0..mb.Length - 1] = mb
         curbs
         |> List.filter mtch
-        |> List.map (fun curb -> (curb.Mhst |> List.rev).[mba.Length])
+        |> List.map (fun curb -> (curb |> List.rev).[mb.Length])
         |> Set.ofList
         |> Set.toList
     
@@ -57,47 +35,39 @@ module Varn =
     let rec smmv m1 m2 no = 
         if List.isEmpty m1 || List.isEmpty m2 || m1.Head <> m2.Head then no
         else smmv m1.Tail m2.Tail (no + 1)
+    
     //function to find index of best match
     let rec fndidx rear cidx no idx mb = 
         if List.isEmpty rear then idx
         else 
-            let curb = List.rev (rear.Head.Mhst)
-            let cno = smmv curb (List.rev mb.Mhst) 0
-                
+            let curb = List.rev (rear.Head)
+            let cno = smmv curb (List.rev mb) 0
+            
             let nidx = 
                 if cno < no then idx
                 else cidx
-                
+            
             let nno = 
                 if cno < no then no
                 else cno
-                
+            
             fndidx rear.Tail (cidx + 1) nno nidx mb
+    
     ///mrgbrch - merges a new branch into a list of branches
-    let mrgbrch (mb : Posn) (curbs : Posn list) = 
+    let mrgbrch (mb : Move list) (curbs : Move list list) = 
         // either same as existing branch and then either do nothing or replace
         // or extra branch and need to put next to the nearest
-        let mba = 
-            mb.Mhst
-            |> List.rev
-            |> List.toArray
-        
-        let mtchba = mba.[0..mba.Length - 2]
-        let mtchb = mtchba |> List.ofArray
+        let mtchb = mb.[0..mb.Length - 2]
         
         //function to add to existing branch
         let rec addex front rear fnd = 
             if List.isEmpty rear then front, fnd
             else 
-                let curb = (rear.Head).Mhst |> List.rev
-                let curba = curb |> List.toArray
-                if curb.Length < mtchb.Length 
-                   && curba = mtchba.[0..curba.Length - 1] then 
+                let curb = rear.Head |> List.rev
+                if curb.Length < mtchb.Length && curb = mtchb.[0..curb.Length - 1] then 
                     (front @ mb :: rear.Tail), true
-                elif curb.Length >= mtchb.Length 
-                     && curba.[0..mtchba.Length - 1] = mtchba then 
-                    if mba.[mba.Length - 1] = curba.[mba.Length - 1] then 
-                        (front @ rear), true
+                elif curb.Length >= mtchb.Length && curb.[0..mtchb.Length - 1] = mtchb then 
+                    if mb.[mb.Length - 1] = curb.[mb.Length - 1] then (front @ rear), true
                     else (front @ mb :: rear.Tail), true
                 else addex (front @ [ rear.Head ]) rear.Tail false
         
@@ -107,21 +77,19 @@ module Varn =
         else 
             //need to find nearest branch
             let nidx = fndidx curbs 0 0 0 mb
-            let curbsa = curbs |> List.toArray
-            let frnt = curbsa.[0..nidx] |> List.ofArray
+            let frnt = curbs.[0..nidx]
             
             let rear = 
-                if nidx < curbs.Length - 1 then 
-                    curbsa.[nidx + 1..curbs.Length - 1] |> List.ofArray
+                if nidx < curbs.Length - 1 then curbs.[nidx + 1..curbs.Length - 1]
                 else []
             frnt @ [ mb ] @ rear
     
     ///add - updates the variation with moves from a game move history
-    let add (cur:Varn) (psn : Posn) = 
+    let add (cur : Varn) (mvl : Move list) = 
         //don't add if wrong colour
-        if psn.Mhst.Length = 0 || not (psn.Mhst.Head.IsW) = cur.Isw then cur
-        elif List.isEmpty cur.Brchs then { cur with Brchs = [ psn ] }
-        else { cur with Brchs = mrgbrch psn cur.Brchs }
+        if mvl.Length = 0 then cur
+        elif List.isEmpty cur.Brchs then { cur with Brchs = [ mvl ] }
+        else { cur with Brchs = mrgbrch mvl cur.Brchs }
     
     ///del - deletes a line from the variation given index of branch to delete
     let del cur (sel : int) = 
@@ -142,11 +110,11 @@ module Varn =
     let mvl2lines mvl = 
         let rec genml ml (mh : Move list) isw = 
             if List.isEmpty mh then List.rev ml
-            else if isw then 
-                genml ([| mh.Head.PGN; "" |] :: ml) mh.Tail (not isw)
+            else if isw then genml ([| mh.Head.Mpgn; "" |] :: ml) mh.Tail (not isw)
             else 
                 genml ([| ml.Head.[0]
-                          mh.Head.PGN |] :: ml.Tail) mh.Tail (not isw)
+                          mh.Head.Mpgn |]
+                       :: ml.Tail) mh.Tail (not isw)
         genml [] mvl true |> List.toArray
     
     ///mvll2lines - support function that converts a move list list to lines
@@ -171,16 +139,16 @@ module Varn =
     ///lines - gets an array of lines for display
     let lines cur = 
         if List.isEmpty cur.Brchs then [||]
-        else mvll2lines (List.map (fun b -> List.rev (b.Mhst)) cur.Brchs)
+        else mvll2lines (List.map (fun b -> List.rev (b)) cur.Brchs)
     
     ///mvl - gets a move list given a cur and the column and the row
     let mvl (cur, cl, rwi) = 
-        let fmvla = List.rev (cur.Brchs.[cl].Mhst) |> List.toArray
+        let fmvl = List.rev (cur.Brchs.[cl])
         
         let rw = 
-            if rwi < fmvla.Length then rwi
-            else fmvla.Length - 1
-        fmvla.[0..rw] |> List.ofArray
+            if rwi < fmvl.Length then rwi
+            else fmvl.Length - 1
+        fmvl.[0..rw]
     
     //STORAGE elements
     //set up paths
@@ -215,11 +183,11 @@ module Varn =
     /// cur2txt - generates array of string of moves from cur varn
     let cur2txt cur = 
         cur.Brchs
-        |> List.map Posn.psn2str
+        |> List.map (fun mvl -> mvl|>List.map(fun m -> m.Mpgn)|>List.reduce(fun a b -> a + " " + b))
         |> List.toArray
     
     ///save - serializes the varn to a file in binary
-    let save (cur:Varn) = 
+    let save (cur : Varn) = 
         try 
             let pfn = 
                 Path.Combine((if cur.Isw then wfol
@@ -229,7 +197,7 @@ module Varn =
             
             let pstr = 
                 cur.Brchs
-                |> List.map Posn.psn2pgnf
+                |> List.map (fun mvl -> mvl|>List.map(fun m -> m.Mpgn)|>List.reduce(fun a b -> a + " " + b))
                 |> List.reduce (fun a b -> a + nl + b)
             File.WriteAllText(pfn, pstr)
             "Save successful for variation: " + cur.Name
@@ -248,9 +216,9 @@ module Varn =
             Path.Combine((if isw then wfol
                           else bfol), nm + ".pgn")
         
-        let pgns = Posn.loadPGN pfn
+        let pgns = PGN.ReadFromFile pfn
         //TODO
-        let brchs = [] //pgns |> List.map Posn.pgn2pos
+        let brchs = pgns |> List.map (fun g -> g.Moves)
         { Name = nm
           Isw = isw
           Brchs = brchs }

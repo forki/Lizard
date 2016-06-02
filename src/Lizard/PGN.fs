@@ -297,7 +297,6 @@ module PGN =
     let ReadFromString(str : string) = 
         let byteArray = Encoding.ASCII.GetBytes(str)
         let stream = new MemoryStream(byteArray)
-        //let stream = new FileStream(file, FileMode.Open)
         let result = ReadFromStream(stream) |> Seq.toList
         stream.Close()
         result

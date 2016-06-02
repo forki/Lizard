@@ -1,4 +1,4 @@
-namespace LizardChess
+namespace Lizard
 
 open System
 open HttpClient
@@ -97,10 +97,10 @@ module FcsDt =
     
     ///Convert posn to ficsdata type
     let pos2ficsd p = 
-        let ls = Posn.psn2str p
+        let ls = p.ToString()//Posn.psn2str p
         let fs = loadFicsDbStore()
         if not (fs.ContainsKey(ls)) then
-            let fen = Posn.ToFen p
+            let fen = p.ToString()//Posn.ToFen p
             try 
                 let fd = 
                     fen
@@ -111,10 +111,10 @@ module FcsDt =
             with e -> failwith ("Fics Data failed: " + e.Message + " for " + fen)
     
     ///Convert posn to pos * ficsdata type list
-    let pos2ficsdlst p = 
-        let rec loadp cp mvl = 
-            if mvl <> [] then 
-                let np = Posn.DoMove(mvl.Head, cp)
-                pos2ficsd np
-                loadp np (mvl.Tail)
-        loadp Posn.st (p.Mhst |> List.rev)
+    let pos2ficsdlst p = ()
+//        let rec loadp cp mvl = 
+//            if mvl <> [] then 
+//                let np = Posn.DoMove(mvl.Head, cp)
+//                pos2ficsd np
+//                loadp np (mvl.Tail)
+//        loadp Posn.st (p.Mhst |> List.rev)

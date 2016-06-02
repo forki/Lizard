@@ -2,7 +2,7 @@
 
 open FsUnit
 open NUnit.Framework
-open LizardChess.Ref
+open Lizard.Ref
 
 [<Test>]
 let ``Ref f 45``() =

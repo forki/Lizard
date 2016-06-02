@@ -1,4 +1,4 @@
-namespace LizardChess
+namespace Lizard
 
 open Nessos.FsPickler.Json
 open System.IO

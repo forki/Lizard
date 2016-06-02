@@ -7,7 +7,7 @@ open SourceGrid
 open DevAge.Drawing.VisualElements
 open Dialogs
 open State
-open LizardChess.Types
+open Lizard.Types
 
 module ControlsPlay =
     type Nav = 

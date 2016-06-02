@@ -1,6 +1,6 @@
 namespace LizardChessUI
 
-open LizardChess
+open Lizard
 open System
 open System.IO
 open System.Net.Sockets
@@ -16,8 +16,8 @@ type Mode =
     | DoDb
 
 type PosnState(sst:SharedState) = 
-    let mutable pos = Posn.st
-    let mutable psmvs = []
+    let mutable pos = []//Posn.st
+    let mutable psmvs:Move list = []
     let mutable cfdt = FcsDt.empfdb
     let mutable canl = Eng.empanl
     //Events
@@ -40,13 +40,11 @@ type PosnState(sst:SharedState) =
         pos <- ps
         pos |> pchngEvt.Trigger
     member x.SetCanl() =
-        canl <- pos
-                |> Posn.psn2str
+        canl <- pos.ToString()
                 |> Eng.getanl (Eng.loadLineStore())
         canl |> bmchngEvt.Trigger
     member x.SetCfdt() =
-        cfdt <- pos
-                |> Posn.psn2str
+        cfdt <- pos.ToString()
                 |> FcsDt.getfdb (FcsDt.loadFicsDbStore())
         cfdt |> fdtchngEvt.Trigger
     member x.SetPsmvs pms =
@@ -54,10 +52,10 @@ type PosnState(sst:SharedState) =
         psmvs |> psmvsEvt.Trigger
     member x.Move(mfrom, mto) = 
         if psmvs.Length > 0 then 
-            let mvl = psmvs |> List.filter (fun m -> m.To = mto)
+            let mvl = psmvs |> List.filter (fun m -> m.Mto = mto)
             if mvl.Length = 1 then 
                 let mv = mvl.[0]
-                x.SetPos(Posn.DoMove(mv, pos))
+                //x.SetPos(Posn.DoMove(mv, pos))
                 x.SetCanl()
                 x.SetCfdt()
                 x.SetPsmvs []
@@ -69,14 +67,14 @@ type PosnState(sst:SharedState) =
                 x.SetCfdt()
                 x.SetPsmvs []
     member x.Promote(mv) = 
-        x.SetPos(Posn.DoMove(mv, pos))
+        //x.SetPos(Posn.DoMove(mv, pos))
         x.SetCanl()
         x.SetCfdt()
         sst.DoMode()
-    member x.GetPossMvs(mfrom) = 
-        let pcl = pos.Pcs |> List.filter (fun pc -> pc.Sq = mfrom)
-        if pcl.Length > 0 && pcl.[0].IsW = pos.IsWhite then 
-            x.SetPsmvs(Posn.GenLegalMvs(pcl.[0], pos))
+    member x.GetPossMvs(mfrom) = ()
+//        let pcl = pos.Pcs |> List.filter (fun pc -> pc.Sq = mfrom)
+//        if pcl.Length > 0 && pcl.[0].IsW = pos.IsWhite then 
+//            x.SetPsmvs(Posn.GenLegalMvs(pcl.[0], pos))
     member x.TrigOri(isw) = isw|>orntEvt.Trigger
 
 and VarnState(sst:SharedState) =
@@ -116,7 +114,7 @@ and VarnState(sst:SharedState) =
         let mvl = Varn.mvl (curv, vr, mv)
         selvar <- vr
         let pstt:PosnState = sst.Pstt
-        pstt.SetPos(Posn.DoMoves(mvl, Posn.st)) 
+        //pstt.SetPos(Posn.DoMoves(mvl, Posn.st)) 
         pstt.SetCanl()
         pstt.SetCfdt()
     member x.OpenVarn(nm, isw) = 
@@ -163,17 +161,18 @@ and VarnState(sst:SharedState) =
     member x.DoNextMv(mv) = 
         let pstt:PosnState = sst.Pstt
         let pos = pstt.CurPos
-        let move = Posn.FndMv(mv, pos)
-        if move.IsSome then 
-            pstt.SetPos(Posn.DoMove(move.Value, pos)) 
-            pstt.SetCanl()
-            pstt.SetCfdt()
-            let pos = pstt.CurPos
-            let oselvar = Varn.findsv pos curv.Brchs
-            if oselvar.IsSome then 
-                selvar <- oselvar.Value
-                let selmv = pos.Mhst.Length - 1
-                (selvar, selmv) |> selCelEvt.Trigger
+        ()
+//        let move = Posn.FndMv(mv, pos)
+//        if move.IsSome then 
+//            pstt.SetPos(Posn.DoMove(move.Value, pos)) 
+//            pstt.SetCanl()
+//            pstt.SetCfdt()
+//            let pos = pstt.CurPos
+//            let oselvar = Varn.findsv pos curv.Brchs
+//            if oselvar.IsSome then 
+//                selvar <- oselvar.Value
+//                let selmv = pos.Mhst.Length - 1
+//                (selvar, selmv) |> selCelEvt.Trigger
     member x.TrigCurv(cc) = cc|>cchngEvt.Trigger
     member x.TrigSelv(ss) = ss|>selCelEvt.Trigger
 
@@ -389,10 +388,10 @@ and AnalState(sst:SharedState) =
         // need to send game position moves as UCI
         let pstt = sst.Pstt
         let pos = pstt.CurPos
-        Game.ComputeAnswer(Posn.psn2str pos, 99, procp)
+        //Game.ComputeAnswer(Posn.psn2str pos, 99, procp)
         isanl <- true
         isanl |> apchngEvt.Trigger
-        (eng + " - " + (Posn.psn2str pos)) |> ahpchngEvt.Trigger
+        //(eng + " - " + (Posn.psn2str pos)) |> ahpchngEvt.Trigger
     
     member x.AnlpStop() = 
         if procp <> null then procp.Kill()
@@ -443,7 +442,7 @@ and GameState(sst:SharedState) =
     member x.NewGame(isw) = 
         let pstt = sst.Pstt
         let vstt = sst.Vstt
-        pstt.SetPos(Posn.st)
+        //pstt.SetPos(Posn.st)
         vstt.SetIsw(isw)
         isw |> pstt.TrigOri
         sst.SetMode(DoPlay)
@@ -458,10 +457,10 @@ and GameState(sst:SharedState) =
             let pos = pstt.CurPos
             let mvl = Varn.findnmvs pos curv.Brchs
             if mvl.Length > 0 then 
-                pstt.SetPos(Posn.DoMove(mvl.Head, pos))
+                //pstt.SetPos(Posn.DoMove(mvl.Head, pos))
                 let pos = pstt.CurPos
                 [ mvl.Head ] |> tosqEvt.Trigger
-                gm <- gm + "1. " + pos.Mhst.Head.PGN + " "
+                //gm <- gm + "1. " + pos.Mhst.Head.PGN + " "
                 (gm, ghdr) |> gmchngEvt.Trigger
                 x.AnlPos()
         else 
@@ -481,18 +480,18 @@ and GameState(sst:SharedState) =
                     let bits = line.Split([| ' ' |])
                     let pstt = sst.Pstt
                     let pos = pstt.CurPos
-                    let bm = Posn.FndMv(bits.[1], pos)
-                    pstt.SetPos(Posn.DoMove(bm.Value, pos))
+                    //let bm = Posn.FndMv(bits.[1], pos)
+                    //pstt.SetPos(Posn.DoMove(bm.Value, pos))
                     let pos = pstt.CurPos
-                    [ bm.Value ] |> tosqEvt.Trigger
+                    //[ bm.Value ] |> tosqEvt.Trigger
                     prc.Kill()
-                    let mvstr = pos.Mhst.Head.PGN
+                    //let mvstr = pos.Mhst.Head.PGN
                     let vstt = sst.Vstt
                     let visw = vstt.VarIsw
-                    gm <- gm 
-                          + (if visw then ""
-                             else (pos.Mhst.Length / 2 + 1).ToString() + ". ") 
-                          + mvstr + " "
+//                    gm <- gm 
+//                          + (if visw then ""
+//                             else (pos.Mhst.Length / 2 + 1).ToString() + ". ") 
+//                          + mvstr + " "
 //                    if mvstr.EndsWith("#") then 
 //                        ghdr <- { ghdr with Result = if visw then Bwin else Wwin }
                     (gm, ghdr) |> gmchngEvt.Trigger
@@ -501,12 +500,12 @@ and GameState(sst:SharedState) =
                         let mvl = Varn.findnmvs pos curv.Brchs
                         if mvl.Length > 0 then 
                             let pos = pstt.CurPos
-                            pstt.SetPos(Posn.DoMove(mvl.Head, pos))
+                            //pstt.SetPos(Posn.DoMove(mvl.Head, pos))
                             let pos = pstt.CurPos
-                            gm <- gm 
-                                  + (if not visw then ""
-                                     else (pos.Mhst.Length / 2 + 1).ToString() 
-                                         + ". ") + pos.Mhst.Head.PGN + " "
+//                            gm <- gm 
+//                                  + (if not visw then ""
+//                                     else (pos.Mhst.Length / 2 + 1).ToString() 
+//                                         + ". ") + pos.Mhst.Head.PGN + " "
                             (gm, ghdr) |> gmchngEvt.Trigger
                             x.AnlPos()
                 else line |> gachngEvt.Trigger
@@ -514,7 +513,8 @@ and GameState(sst:SharedState) =
         Game.SetUpPrc prc eng
         let pstt = sst.Pstt
         let pos = pstt.CurPos
-        Game.ComputeAnswer(Posn.psn2str pos, -1, prc)
+        ()
+        //Game.ComputeAnswer(Posn.psn2str pos, -1, prc)
     member x.FicsSend(msg) = 
         let rec onSend(ar : IAsyncResult) = 
             _socket <- ar.AsyncState :?> Socket
@@ -533,7 +533,7 @@ and GameState(sst:SharedState) =
     member x.DoFicsW(opts,buf) =
         let pstt = sst.Pstt
         let vstt = sst.Vstt
-        pstt.SetPos(Posn.st)
+        //pstt.SetPos(Posn.st)
         vstt.SetIsw(true)
         true |> pstt.TrigOri
         fsttEvt.Trigger()
@@ -547,18 +547,18 @@ and GameState(sst:SharedState) =
             let curv = vstt.CurVarn
             let mvl = Varn.findnmvs pos curv.Brchs
             if mvl.Length > 0 then 
-                pstt.SetPos(Posn.DoMove(mvl.Head, pos))
+                //pstt.SetPos(Posn.DoMove(mvl.Head, pos))
                 let pos = pstt.CurPos
-                gm <- gm + "1. " + pos.Mhst.Head.PGN + " "
+                //gm <- gm + "1. " + pos.Mhst.Head.PGN + " "
                 (gm, ghdr) |> gmchngEvt.Trigger
                 //remove promotion as FICS defaults to Q unless you send "promote n"
                 //see http://www.freechess.org/Help/HelpFiles/promote.html
-                x.FicsSend(mvl.Head.UCI.Substring(0, 4))
+                //x.FicsSend(mvl.Head.UCI.Substring(0, 4))
         true
     member x.DoFicsB(opts,buf) =
         let pstt = sst.Pstt
         let vstt = sst.Vstt
-        pstt.SetPos(Posn.st)
+        //pstt.SetPos(Posn.st)
         vstt.SetIsw(false)
         false |> pstt.TrigOri
         fsttEvt.Trigger()
@@ -591,15 +591,15 @@ and GameState(sst:SharedState) =
 //            pstt.SetPos(Posn.DoMove(fmv, pos))
             let pos = pstt.CurPos
 //            [ fmv ] |> tosqEvt.Trigger
-            let mvstr = pos.Mhst.Head.PGN
-            gm <- gm 
-                    + (if visw then ""
-                        else (pos.Mhst.Length / 2 + 1).ToString() + ". ") 
-                    + mvstr + " "
+//            let mvstr = pos.Mhst.Head.PGN
+//            gm <- gm 
+//                    + (if visw then ""
+//                        else (pos.Mhst.Length / 2 + 1).ToString() + ". ") 
+//                    + mvstr + " "
 //            if mvstr.EndsWith("#") then 
 //                ghdr <- { ghdr with Result = if visw then Bwin else Wwin }
             (gm, ghdr) |> gmchngEvt.Trigger
-            if pos.Mhst.Head.PGN.EndsWith("#") then 
+            if pos.Head.Mpgn.EndsWith("#") then 
                 fendEvt.Trigger()
                 false
             else 
@@ -609,16 +609,16 @@ and GameState(sst:SharedState) =
                     let mvl = Varn.findnmvs pos curv.Brchs
                     if mvl.Length > 0 then 
                         let pos = pstt.CurPos
-                        pstt.SetPos(Posn.DoMove(mvl.Head, pos))
+                        //pstt.SetPos(Posn.DoMove(mvl.Head, pos))
                         let pos = pstt.CurPos
-                        gm <- gm 
-                                + (if not visw then ""
-                                    else (pos.Mhst.Length / 2 + 1).ToString() + ". ") 
-                                + pos.Mhst.Head.PGN + " "
+//                        gm <- gm 
+//                                + (if not visw then ""
+//                                    else (pos.Mhst.Length / 2 + 1).ToString() + ". ") 
+//                                + pos.Mhst.Head.PGN + " "
                         (gm, ghdr) |> gmchngEvt.Trigger
                         //remove promotion as FICS defaults to Q unless you send "promote n"
                         //see http://www.freechess.org/Help/HelpFiles/promote.html
-                        x.FicsSend(mvl.Head.UCI.Substring(0, 4))
+//                        x.FicsSend(mvl.Head.UCI.Substring(0, 4))
                 true
         else true
     member x.SeekFics() = 
@@ -737,7 +737,7 @@ and GameState(sst:SharedState) =
 //        | DoFics -> Game.updPGN pos (ghdr : Gmhdr) "FicsGames.pgn"
         | _ -> ()
     member x.OpenPGN(nm) = 
-        pgngms <- Posn.loadPGN nm
+//        pgngms <- Posn.loadPGN nm
         sst.SetMode(DoDb)
         pgngms |> dbldEvt.Trigger
     member x.LoadPgnGame(rw) = 
@@ -745,25 +745,26 @@ and GameState(sst:SharedState) =
         //TODO
 //        if pgngms.Length > 0 then pstt.SetPos(Posn.pgn2pos pgngms.[rw - 1])
         let pos = pstt.CurPos
-        gm <- Posn.psn2pgn pos
+//        gm <- Posn.psn2pgn pos
         (gm, pgngms.[rw - 1]) |> dbgmldEvt.Trigger
-        pgnmvs <- pos.Mhst
-                  |> List.rev
-                  |> List.toArray
+//        pgnmvs <- pos.Mhst
+//                  |> List.rev
+//                  |> List.toArray
     member x.GetPgnPos(off) = 
         let pstt = sst.Pstt
         let pos = pstt.CurPos
-        let cnum = pos.Mhst.Length - 1
-        let p = 
-            if off = 0 then Posn.st
-            elif off = 1 then 
-                Posn.DoMoves(pgnmvs.[0..(min (cnum + 1) (pgnmvs.Length - 1))]|> List.ofArray, Posn.st)
-            elif off = -1 then 
-                if cnum > 0 then 
-                    Posn.DoMoves(pgnmvs.[0..cnum - 1] |> List.ofArray, Posn.st)
-                else Posn.st
-            else Posn.DoMoves(pgnmvs |> List.ofArray, Posn.st)
-        pstt.SetPos(p)
+        let cnum = pos.Length - 1
+        ()
+//        let p = 
+//            if off = 0 then Posn.st
+//            elif off = 1 then 
+//                Posn.DoMoves(pgnmvs.[0..(min (cnum + 1) (pgnmvs.Length - 1))]|> List.ofArray, Posn.st)
+//            elif off = -1 then 
+//                if cnum > 0 then 
+//                    Posn.DoMoves(pgnmvs.[0..cnum - 1] |> List.ofArray, Posn.st)
+//                else Posn.st
+//            else Posn.DoMoves(pgnmvs |> List.ofArray, Posn.st)
+//        pstt.SetPos(p)
     member x.TrigGmChng(gc) = gc|>gmchngEvt.Trigger
 
 and SharedState() as x = 
@@ -807,25 +808,26 @@ and SharedState() as x =
             if oselvar.IsSome then 
                 vstt.SetVar(oselvar.Value)
                 let selvar = vstt.SelVar
-                let selmv = pos.Mhst.Length - 1
-                (selvar, selmv) |> vstt.TrigSelv
+                ()
+//                let selmv = pos.Mhst.Length - 1
+//                (selvar, selmv) |> vstt.TrigSelv
         | DoTest -> 
             //update tests
             tstt.SetDone(tstt.Done + 1)
             Application.DoEvents()
             System.Threading.Thread.Sleep(1000)
-            let cormvto = tstt.Tests.[tstt.Num].Mv.To
-            if cormvto = pos.Mhst.Head.To then 
-                tstt.SetTest(tstt.Num, { tstt.Tests.[tstt.Num] with Status = "Passed" })
-                tstt.SetCor(tstt.Cor + 1)
-            else tstt.SetTest(tstt.Num, { tstt.Tests.[tstt.Num] with Status = "Failed" })
+            let cormvto = tstt.Tests.[tstt.Num].Mv.Mto
+//            if cormvto = pos.Mhst.Head.To then 
+//                tstt.SetTest(tstt.Num, { tstt.Tests.[tstt.Num] with Status = "Passed" })
+//                tstt.SetCor(tstt.Cor + 1)
+//            else tstt.SetTest(tstt.Num, { tstt.Tests.[tstt.Num] with Status = "Failed" })
             (tstt.Num, tstt.Tests.[tstt.Num].Status) |> tstt.TrigRes
         | DoPlay -> 
             //update game and start analysis
             let visw = vstt.VarIsw
-            let mvstr = pos.Mhst.Head.PGN
-            gstt.SetGm(gstt.Gm + (if visw then (pos.Mhst.Length / 2 + 1).ToString() + ". "
-                        else "") + mvstr + " ")
+//            let mvstr = pos.Mhst.Head.PGN
+//            gstt.SetGm(gstt.Gm + (if visw then (pos.Mhst.Length / 2 + 1).ToString() + ". "
+//                        else "") + mvstr + " ")
 //            if mvstr.EndsWith("#") then 
 //                gstt.SetGhdr({ gstt.Ghdr with Result = if visw then Wwin else Bwin })
             (gstt.Gm, gstt.Ghdr) |> gstt.TrigGmChng
@@ -833,15 +835,15 @@ and SharedState() as x =
         | DoFics -> 
             //update game and send move
             let visw = vstt.VarIsw
-            let mvstr = pos.Mhst.Head.PGN
-            gstt.SetGm(gstt.Gm + (if visw then (pos.Mhst.Length / 2 + 1).ToString() + ". "
-                        else "") + mvstr + " ")
+//            let mvstr = pos.Mhst.Head.PGN
+//            gstt.SetGm(gstt.Gm + (if visw then (pos.Mhst.Length / 2 + 1).ToString() + ". "
+//                        else "") + mvstr + " ")
 //            if mvstr.EndsWith("#") then 
 //                gstt.SetGhdr({ gstt.Ghdr with Result = if visw then Wwin else Bwin })
             (gstt.Gm, gstt.Ghdr) |> gstt.TrigGmChng
             //remove promotion as FICS defaults to Q unless you send "promote n"
             //see http://www.freechess.org/Help/HelpFiles/promote.html 
-            gstt.FicsSend(pos.Mhst.Head.UCI.Substring(0, 4))
+//            gstt.FicsSend(pos.Mhst.Head.UCI.Substring(0, 4))
         | DoDb -> ()
     member x.GetOpts() = Opts.load()
     member x.SaveOpts(opts) = Opts.save (opts)

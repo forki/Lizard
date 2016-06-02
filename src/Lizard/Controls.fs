@@ -7,7 +7,7 @@ open SourceGrid
 open DevAge.Drawing.VisualElements
 open Dialogs
 open State
-open LizardChess.Types
+open Lizard.Types
 
 module Controls = 
     type TsRib() as this = 
@@ -317,7 +317,7 @@ module Controls =
         /// creates file label
         let flbl i lbli = 
             let lbl = new Label()
-            lbl.Text <- LizardChess.Ref.fs.[i]
+            lbl.Text <- Lizard.Ref.fs.[i]
             lbl.Font <- new Font("Arial", 12.0F, FontStyle.Bold, 
                                  GraphicsUnit.Point, byte (0))
             lbl.ForeColor <- Color.Green
@@ -360,18 +360,19 @@ module Controls =
             if e.Button = MouseButtons.Left then 
                 let cpos = pstt.CurPos
                 let sqFrom = System.Convert.ToInt32(p.Tag)
-                let pcl = cpos.Pcs |> List.filter (fun pc -> pc.Sq = sqFrom)
-                if pcl.Length > 0 then 
-                    pstt.GetPossMvs(sqFrom)
-                    let oimg = p.Image
-                    p.Image <- null
-                    p.Refresh()
-                    cCur <- pccrs.[pcl.[0].Img]
-                    sqpnl.Cursor <- cCur
-                    if (p.DoDragDrop(pcl.[0].Img, DragDropEffects.Move) = DragDropEffects.Move) then 
-                        pstt.Move(sqFrom, sqTo)
-                    else p.Image <- oimg
-                    sqpnl.Cursor <- Cursors.Default
+                ()
+                //let pcl = cpos.Pcs |> List.filter (fun pc -> pc.Sq = sqFrom)
+//                if pcl.Length > 0 then 
+//                    pstt.GetPossMvs(sqFrom)
+//                    let oimg = p.Image
+//                    p.Image <- null
+//                    p.Refresh()
+//                    cCur <- pccrs.[pcl.[0].Img]
+//                    sqpnl.Cursor <- cCur
+//                    if (p.DoDragDrop(pcl.[0].Img, DragDropEffects.Move) = DragDropEffects.Move) then 
+//                        pstt.Move(sqFrom, sqTo)
+//                    else p.Image <- oimg
+//                    sqpnl.Cursor <- Cursors.Default
         
         ///set board colours and position of squares
         let setsq i sqi = 
@@ -394,17 +395,17 @@ module Controls =
             sqs.[i] <- sq
         
         ///set pieces on squares
-        let setpcs p = 
-            let setpc (pc : Piece) = 
-                let sq = pc.Sq
-                if sq <> -1 then sqs.[sq].Image <- pcims.[pc.Img]
-            sqs |> Array.iter (fun sq -> sq.Image <- null)
-            let setpcs() = p.Pcs |> List.iter setpc
-            if (this.InvokeRequired) then 
-                try 
-                    this.Invoke(MethodInvoker(setpcs)) |> ignore
-                with _ -> ()
-            else setpcs()
+//        let setpcs p = 
+//            let setpc (pc : Piece) = 
+//                let sq = pc.Sq
+//                if sq <> -1 then sqs.[sq].Image <- pcims.[pc.Img]
+//            sqs |> Array.iter (fun sq -> sq.Image <- null)
+//            let setpcs() = p.Pcs |> List.iter setpc
+//            if (this.InvokeRequired) then 
+//                try 
+//                    this.Invoke(MethodInvoker(setpcs)) |> ignore
+//                with _ -> ()
+//            else setpcs()
         
         ///orient board
         let orient isw = 
@@ -438,9 +439,9 @@ module Controls =
                                                 Color.Green
                                             else Color.PaleGreen)
             ml |> List.iter (fun m -> 
-                      sqs.[m.To].BackColor <- if (m.To % 8 + m.To / 8) % 2 = 0 then 
+                      sqs.[m.Mto].BackColor <- if (m.Mto % 8 + m.Mto / 8) % 2 = 0 then 
                                                   Color.YellowGreen
-                                              else Color.Yellow)
+                                               else Color.Yellow)
         
         ///show promotion dialog
         let showprom (mvs) = 
@@ -456,7 +457,7 @@ module Controls =
         do 
             sqs |> Array.iteri setsq
             sqs |> Array.iter sqpnl.Controls.Add
-            pstt.CurPos |> setpcs
+            //pstt.CurPos |> setpcs
             edges |> List.iter this.Controls.Add
             flbls |> Array.iteri flbl
             flbls |> Array.iter this.Controls.Add
@@ -466,7 +467,7 @@ module Controls =
             bmlbl |> bmpnl.Controls.Add
             bmpnl |> this.Controls.Add
             //events
-            pstt.PosChng |> Observable.add setpcs
+            //pstt.PosChng |> Observable.add setpcs
             pstt.PsMvs |> Observable.add highlightsqs
             pstt.Prom |> Observable.add showprom
             pstt.Ornt |> Observable.add orient
@@ -517,8 +518,8 @@ module Controls =
             nextmvs.Items.Clear()
             let addit (m : Move) = 
                 let itm = new ListViewItem()
-                itm.Text <- m.PGN
-                itm.Tag <- m.UCI
+                itm.Text <- m.Mpgn
+                itm.Tag <- m.Mpgn
                 nextmvs.Items.Add itm |> ignore
             nmvs |> List.iter addit
         
@@ -730,7 +731,7 @@ module Controls =
             dg.KeyDown.Add(dokeydown)
             dg.Selection.SelectionChanged.Add(selmv)
             vstt.CurChng |> Observable.add updVarn
-            vstt.SelCell |> Observable.add selcel
+            //vstt.SelCell |> Observable.add selcel
             homeb.Click.Add(fun _ -> donav (Home))
             prevb.Click.Add(fun _ -> donav (Prev))
             nextb.Click.Add(fun _ -> donav (Next))

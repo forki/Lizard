@@ -1,4 +1,4 @@
-namespace LizardChess
+namespace Lizard
 
 open System
 open System.IO
@@ -88,8 +88,8 @@ module Test =
     //getallres - gets an array of an array of all results
     let getallres() = 
         let reslst = loadResults() |> List.ofArray
-        let wvars = Varn.wvars()
-        let bvars = Varn.bvars()
+        let wvars = Lizard.Varn.wvars()
+        let bvars = Lizard.Varn.bvars()
         
         let rec getarr isw nm resl = 
             if List.isEmpty resl then 
@@ -115,8 +115,8 @@ module Test =
     //getallres - gets an array of an array of all results
     let getallreslin() = 
         let reslst = loadResultsLin() |> List.ofArray
-        let wvars = Varn.wvars()
-        let bvars = Varn.bvars()
+        let wvars = Lizard.Varn.wvars()
+        let bvars = Lizard.Varn.bvars()
         
         let rec getarr isw nm resl = 
             if List.isEmpty resl then 
@@ -140,11 +140,11 @@ module Test =
         (wl @ bl) |> List.toArray
     
     // GENERAL FUNCTIONS
-    let GetPosn tst = Posn.DoMoves(tst.Mvl, Posn.st)
+    let GetPosn tst = tst.Mvl
     
     let rec ListIncl (tst : TestDet) tstlst = 
         if List.isEmpty tstlst then false
-        elif GetPosn(tstlst.Head).Sqrs = GetPosn(tst).Sqrs then true
+        elif tstlst.Head = tst then true
         else ListIncl tst tstlst.Tail
     
     /// ListAdd - only adds if not present
@@ -153,7 +153,7 @@ module Test =
         else tst :: tstlst
     
     //get a ful array of test positions from a line
-    let rec fromLine front rear tests nm = 
+    let rec fromLine (front:Lizard.Types.Move list) (rear:Lizard.Types.Move list) tests nm = 
         if List.isEmpty rear then tests
         elif List.isEmpty rear.Tail then 
             ListAdd { Mvl = front
@@ -170,18 +170,18 @@ module Test =
                            Status = "Not Done" } tests) nm
     
     //get a full array of test positions from a variation for random tests
-    let fromVarn (vn : Varn) = 
+    let fromVarn (vn : Lizard.Types.Varn) = 
         let tstlst = 
             if vn.Isw then 
                 vn.Brchs 
                 |> List.map 
-                       (fun b -> fromLine [] (List.rev b.Mhst) [] (vn.Name))
+                       (fun b -> fromLine [] (List.rev b) [] (vn.Name))
             else 
                 vn.Brchs 
                 |> List.map 
                        (fun b -> 
-                       fromLine [ (List.rev b.Mhst).Head ] 
-                           (List.rev b.Mhst).Tail [] (vn.Name))
+                       fromLine [ (List.rev b).Head ] 
+                           (List.rev b).Tail [] (vn.Name))
         tstlst
         |> List.concat
         |> List.toArray
@@ -190,11 +190,11 @@ module Test =
     let fromName vnname isw = 
         let vnnames = 
             if vnname = "<All>" then 
-                if isw then Varn.wvars()
-                else Varn.bvars()
+                if isw then Lizard.Varn.wvars()
+                else Lizard.Varn.bvars()
             else [ vnname ]
         
-        let vns = vnnames |> List.map (fun nm -> Varn.load (nm, isw))
+        let vns = vnnames |> List.map (fun nm -> Lizard.Varn.load (nm, isw))
         
         let alltests = 
             vns
@@ -235,19 +235,19 @@ module Test =
         // get settings
         let opts = Opts.load()
         // get all lines
-        let vn = Varn.load (vnname, isw)
+        let vn = Lizard.Varn.load (vnname, isw)
         
         let tstlst = 
             if vn.Isw then 
                 vn.Brchs 
                 |> List.map 
-                       (fun b -> fromLine [] (List.rev b.Mhst) [] (vn.Name))
+                       (fun b -> fromLine [] (List.rev b) [] (vn.Name))
             else 
                 vn.Brchs 
                 |> List.map 
                        (fun b -> 
-                       fromLine [ (List.rev b.Mhst).Head ] 
-                           (List.rev b.Mhst).Tail [] (vn.Name))
+                       fromLine [ (List.rev b).Head ] 
+                           (List.rev b).Tail [] (vn.Name))
         
         //select random subset
         let alltestgenl = new System.Collections.Generic.List<TestDet list>(tstlst)

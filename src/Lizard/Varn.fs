@@ -15,23 +15,23 @@ module Varn =
           Isw = true
           Brchs = [] }
     
-    ///findsv - finds the selvar given posn and set of posns
+    ///findsv - finds the selvar given move list and set of move lists
     let findsv (mb : Move list) (curbs : Move list list) = 
         //function to find match
         let mtch (mvl : Move list) = mvl.Length >= mb.Length && mvl.[0..mb.Length - 1] = mb
         curbs |> List.tryFindIndex mtch
     
-    ///findnmvs - finds the next moves given posn and set of posns
+    ///findnmvs - finds the next moves given move list and set of move lists
     let findnmvs (mb : Move list) (curbs : Move list list) = 
         //function to find match with extra move
         let mtch (mvl : Move list) = mvl.Length > mb.Length && mvl.[0..mb.Length - 1] = mb
         curbs
         |> List.filter mtch
-        |> List.map (fun curb -> (curb |> List.rev).[mb.Length])
+        |> List.map (fun curb -> curb.[mb.Length])
         |> Set.ofList
         |> Set.toList
     
-    //function to find length same for two move list
+    //function to find length same for two move lists
     let rec smmv m1 m2 no = 
         if List.isEmpty m1 || List.isEmpty m2 || m1.Head <> m2.Head then no
         else smmv m1.Tail m2.Tail (no + 1)
@@ -139,11 +139,11 @@ module Varn =
     ///lines - gets an array of lines for display
     let lines cur = 
         if List.isEmpty cur.Brchs then [||]
-        else mvll2lines (List.map (fun b -> List.rev (b)) cur.Brchs)
+        else mvll2lines cur.Brchs
     
     ///mvl - gets a move list given a cur and the column and the row
     let mvl (cur, cl, rwi) = 
-        let fmvl = List.rev (cur.Brchs.[cl])
+        let fmvl = cur.Brchs.[cl]
         
         let rw = 
             if rwi < fmvl.Length then rwi
@@ -183,7 +183,7 @@ module Varn =
     /// cur2txt - generates array of string of moves from cur varn
     let cur2txt cur = 
         cur.Brchs
-        |> List.map (fun mvl -> mvl|>List.map(fun m -> m.Mpgn)|>List.reduce(fun a b -> a + " " + b))
+        |> List.map (fun mvl -> mvl|>List.map(fun m -> m.UCI)|>List.reduce(fun a b -> a + " " + b))
         |> List.toArray
     
     ///save - serializes the varn to a file in binary
@@ -195,9 +195,13 @@ module Varn =
             
             let nl = Environment.NewLine
             
+            let mvl2pgn mvl =
+                let gm = {PGN.Game.Blank with Moves=mvl}
+                gm.ToString() 
+
             let pstr = 
                 cur.Brchs
-                |> List.map (fun mvl -> mvl|>List.map(fun m -> m.Mpgn)|>List.reduce(fun a b -> a + " " + b))
+                |> List.map mvl2pgn
                 |> List.reduce (fun a b -> a + nl + b)
             File.WriteAllText(pfn, pstr)
             "Save successful for variation: " + cur.Name

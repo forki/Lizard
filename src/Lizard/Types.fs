@@ -23,13 +23,20 @@ module Types =
           Mtyp : MvTyp option
           Mpgn : string }
         override x.ToString() = x.Mpgn
+        member x.UCI = 
+            let mv = Ref.sq.[x.Mfrom] + Ref.sq.[x.Mto]
+            if x.Mtyp.IsNone then mv
+            else 
+                match x.Mtyp.Value with
+                | Prom(t) -> mv + t.ToString()
+                | _ -> mv
     
     //storage of variations
     type Varn = 
         { Name : string
           Isw : bool
           Brchs : Move list list }
-
+    
     //test - records of tests
     type TestDet = 
         { Mvl : Move list
@@ -43,8 +50,10 @@ module Types =
           Visw : bool
           Dte : DateTime
           Res : int }
+    
     //linstr - store of analysis
     type Linstr = System.Collections.Generic.Dictionary<string, string>
+    
     //enganl - record of engine analysis results
     type Enganl = 
         { Depth : int
@@ -61,7 +70,7 @@ module Types =
           BPGN : string
           Bstr : string
           Bscr : int }
-
+    
     //options - record of all options
     type Options = 
         { Opnfol : string
@@ -83,7 +92,7 @@ module Types =
           Fpass : string
           Ftime : int
           Fuopn : bool }
-
+    
     //ficsdata
     type Ficsmv = 
         { Fpgn : string

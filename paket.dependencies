@@ -1,7 +1,3 @@
-source https://nuget.org/api/v2
-
-nuget FSharp.Core redirects: force
-
 group Build
   source https://nuget.org/api/v2
   

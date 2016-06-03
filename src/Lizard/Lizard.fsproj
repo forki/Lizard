@@ -62,6 +62,9 @@
   </Target>
   -->
   <ItemGroup>
+    <Content Include="license.txt">
+      <Paket>True</Paket>
+    </Content>
     <Compile Include="AssemblyInfo.fs" />
     <None Include="App.config" />
     <EmbeddedResource Include="Cursors\BlackBishop.cur" />
@@ -129,10 +132,10 @@
     <EmbeddedResource Include="Images\openred.png" />
     <EmbeddedResource Include="Images\convert.png" />
     <Compile Include="AssemblyInfo.fs" />
+    <Compile Include="Ref.fs" />
     <Compile Include="Types.fs" />
     <Compile Include="Pos.fs" />
     <Compile Include="PGN.fs" />
-    <Compile Include="Ref.fs" />
     <Compile Include="Opts.fs" />
     <Compile Include="Varn.fs" />
     <Compile Include="Test.fs" />

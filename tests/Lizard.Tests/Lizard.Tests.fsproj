@@ -49,12 +49,22 @@
     </Otherwise>
   </Choose>
   <Import Project="$(FSharpTargetsPath)" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
   <ItemGroup>
     <Compile Include="AssemblyInfo.fs" />
     <Compile Include="FsUnit.fs" />
+    <Compile Include="PGN.fs" />
     <Compile Include="Ref.fs" />
-    <Compile Include="Posn.fs" />
+    <Compile Include="Opts.fs" />
+    <Compile Include="Varn.fs" />
     <None Include="paket.references" />
+    <Content Include="App.config" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="mscorlib" />
@@ -64,16 +74,7 @@
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Numerics" />
-  </ItemGroup>
-  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
-       Other similar extension points exist, see Microsoft.Common.targets.
-  <Target Name="BeforeBuild">
-  </Target>
-  <Target Name="AfterBuild">
-  </Target>
-  -->
-  <ItemGroup>
-    <ProjectReference Include="..\..\..\src\Lizard\Lizard.fsproj">
+    <ProjectReference Include="..\..\src\Lizard\Lizard.fsproj">
       <Name>Lizard</Name>
       <Project>{64bedb00-8d52-4ced-a204-238d55d60171}</Project>
       <Private>True</Private>
@@ -81,7 +82,7 @@
   </ItemGroup>
   <ItemGroup>
     <Reference Include="nunit.framework">
-      <HintPath>..\..\..\packages\test\NUnit\lib\nunit.framework.dll</HintPath>
+      <HintPath>..\..\packages\test\NUnit\lib\nunit.framework.dll</HintPath>
       <Private>True</Private>
       <Paket>True</Paket>
     </Reference>

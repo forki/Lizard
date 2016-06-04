@@ -16,7 +16,8 @@ type Mode =
     | DoDb
 
 type PosnState(sst:SharedState) = 
-    let mutable pos = []//Posn.st
+    let mutable pos = Pos.Start()
+    let mutable mvs = []
     let mutable psmvs:Move list = []
     let mutable cfdt = FcsDt.empfdb
     let mutable canl = Eng.empanl
@@ -36,6 +37,7 @@ type PosnState(sst:SharedState) =
     member x.FdtChng = fdtchngEvt.Publish
     //members
     member x.CurPos = pos
+    member x.CurMvs = mvs
     member x.SetPos ps =
         pos <- ps
         pos |> pchngEvt.Trigger
@@ -86,10 +88,6 @@ and VarnState(sst:SharedState) =
             if wvrs.Length>1 then Varn.load (wvrs.[0], visw) else Varn.emp
         else
             if bvrs.Length>1 then Varn.load (bvrs.[0], visw) else Varn.emp
-
-
-//        Varn.load ((if visw then wvrs.[0]
-//                    else bvrs.[0]), visw)
     let mutable selvar = -1
     //Events
     let vchngEvt = new Event<_>()
@@ -114,7 +112,7 @@ and VarnState(sst:SharedState) =
         let mvl = Varn.mvl (curv, vr, mv)
         selvar <- vr
         let pstt:PosnState = sst.Pstt
-        //pstt.SetPos(Posn.DoMoves(mvl, Posn.st)) 
+        pstt.SetPos(Pos.FromMoves(mvl)) 
         pstt.SetCanl()
         pstt.SetCfdt()
     member x.OpenVarn(nm, isw) = 
@@ -156,23 +154,22 @@ and VarnState(sst:SharedState) =
         (curv |> Varn.lines, currAnls) |> cchngEvt.Trigger
     member x.GetNextMvs() = 
         let pstt:PosnState = sst.Pstt
-        let pos = pstt.CurPos
-        Varn.findnmvs pos curv.Brchs
+        let mvl = pstt.CurMvs
+        Varn.findnmvs mvl curv.Brchs
     member x.DoNextMv(mv) = 
         let pstt:PosnState = sst.Pstt
         let pos = pstt.CurPos
-        ()
-//        let move = Posn.FndMv(mv, pos)
-//        if move.IsSome then 
-//            pstt.SetPos(Posn.DoMove(move.Value, pos)) 
-//            pstt.SetCanl()
-//            pstt.SetCfdt()
-//            let pos = pstt.CurPos
-//            let oselvar = Varn.findsv pos curv.Brchs
-//            if oselvar.IsSome then 
-//                selvar <- oselvar.Value
-//                let selmv = pos.Mhst.Length - 1
-//                (selvar, selmv) |> selCelEvt.Trigger
+        let move = pos.GetMv(mv)
+        pos.DoMv(move)
+        pstt.SetPos(pos) 
+        pstt.SetCanl()
+        pstt.SetCfdt()
+        let mvs = pstt.CurMvs
+        let oselvar = Varn.findsv mvs curv.Brchs
+        if oselvar.IsSome then 
+            selvar <- oselvar.Value
+            let selmv = mvs.Length - 1
+            (selvar, selmv) |> selCelEvt.Trigger
     member x.TrigCurv(cc) = cc|>cchngEvt.Trigger
     member x.TrigSelv(ss) = ss|>selCelEvt.Trigger
 
@@ -454,13 +451,15 @@ and GameState(sst:SharedState) =
         if uopn then vstt.SetVarn(Varn.loada ("<All>", isw))
         let curv = vstt.CurVarn
         if isw && uopn then 
+            let mvs = pstt.CurMvs
             let pos = pstt.CurPos
-            let mvl = Varn.findnmvs pos curv.Brchs
+            let mvl = Varn.findnmvs mvs curv.Brchs
             if mvl.Length > 0 then 
-                //pstt.SetPos(Posn.DoMove(mvl.Head, pos))
+                pos.DoMv mvl.Head
+                pstt.SetPos(pos)
                 let pos = pstt.CurPos
                 [ mvl.Head ] |> tosqEvt.Trigger
-                //gm <- gm + "1. " + pos.Mhst.Head.PGN + " "
+                gm <- gm + "1. " + mvl.Head.Mpgn + " "
                 (gm, ghdr) |> gmchngEvt.Trigger
                 x.AnlPos()
         else 
@@ -497,7 +496,8 @@ and GameState(sst:SharedState) =
                     (gm, ghdr) |> gmchngEvt.Trigger
                     if uopn then 
                         let curv = vstt.CurVarn
-                        let mvl = Varn.findnmvs pos curv.Brchs
+                        let mvs = pstt.CurMvs
+                        let mvl = Varn.findnmvs mvs curv.Brchs
                         if mvl.Length > 0 then 
                             let pos = pstt.CurPos
                             //pstt.SetPos(Posn.DoMove(mvl.Head, pos))
@@ -545,7 +545,8 @@ and GameState(sst:SharedState) =
         if uopn then 
             let pos = pstt.CurPos
             let curv = vstt.CurVarn
-            let mvl = Varn.findnmvs pos curv.Brchs
+            let mvs = pstt.CurMvs
+            let mvl = Varn.findnmvs mvs curv.Brchs
             if mvl.Length > 0 then 
                 //pstt.SetPos(Posn.DoMove(mvl.Head, pos))
                 let pos = pstt.CurPos
@@ -590,6 +591,7 @@ and GameState(sst:SharedState) =
 //            let fmv = Posn.pgn2mov pos pgnmv
 //            pstt.SetPos(Posn.DoMove(fmv, pos))
             let pos = pstt.CurPos
+            let mvs = pstt.CurMvs
 //            [ fmv ] |> tosqEvt.Trigger
 //            let mvstr = pos.Mhst.Head.PGN
 //            gm <- gm 
@@ -599,14 +601,14 @@ and GameState(sst:SharedState) =
 //            if mvstr.EndsWith("#") then 
 //                ghdr <- { ghdr with Result = if visw then Bwin else Wwin }
             (gm, ghdr) |> gmchngEvt.Trigger
-            if pos.Head.Mpgn.EndsWith("#") then 
+            if mvs.Head.Mpgn.EndsWith("#") then 
                 fendEvt.Trigger()
                 false
             else 
                 let uopn = opts.Guseopn
                 if uopn then 
                     let curv = vstt.CurVarn
-                    let mvl = Varn.findnmvs pos curv.Brchs
+                    let mvl = Varn.findnmvs mvs curv.Brchs
                     if mvl.Length > 0 then 
                         let pos = pstt.CurPos
                         //pstt.SetPos(Posn.DoMove(mvl.Head, pos))
@@ -753,7 +755,8 @@ and GameState(sst:SharedState) =
     member x.GetPgnPos(off) = 
         let pstt = sst.Pstt
         let pos = pstt.CurPos
-        let cnum = pos.Length - 1
+        let mvs = pstt.CurMvs
+        let cnum = mvs.Length - 1
         ()
 //        let p = 
 //            if off = 0 then Posn.st
@@ -795,22 +798,22 @@ and SharedState() as x =
         mode |> mchngEvt.Trigger
     member x.DoMode() = 
         let pos = pstt.CurPos
+        let mvs = pstt.CurMvs
         match mode with
         | DoVarn -> 
             //update Varn
             let curv = vstt.CurVarn
-            vstt.SetVarn(Varn.add curv pos)
+            vstt.SetVarn(Varn.add curv mvs)
             let curv = vstt.CurVarn
             let currAnls = Eng.getanls (Eng.loadLineStore(), curv)
             (curv |> Varn.lines, currAnls) |> vstt.TrigCurv
             //update selected cell
-            let oselvar = Varn.findsv pos curv.Brchs
+            let oselvar = Varn.findsv mvs curv.Brchs
             if oselvar.IsSome then 
                 vstt.SetVar(oselvar.Value)
                 let selvar = vstt.SelVar
-                ()
-//                let selmv = pos.Mhst.Length - 1
-//                (selvar, selmv) |> vstt.TrigSelv
+                let selmv = mvs.Length - 1
+                (selvar, selmv) |> vstt.TrigSelv
         | DoTest -> 
             //update tests
             tstt.SetDone(tstt.Done + 1)

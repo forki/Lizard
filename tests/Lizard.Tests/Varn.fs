@@ -200,8 +200,18 @@ let ``Varn cur2txt``() =
 let ``Varn save``() =
     let ans = Varn.save vrn
     ans|>should equal "Save successful for variation: NotSet"
-    let fn = Path.Combine(Opts.load().Opnfol,"White\\" + vrn.Name+".pgn")
+    let fn = Path.Combine(Varn.wfol,vrn.Name+".pgn")
     File.Exists(fn)|>should equal true
     File.Delete(fn)
     File.Exists(fn)|>should equal false
 
+[<Test>]
+let ``Varn load``() =
+    let ans = Varn.save vrn
+    ans|>should equal "Save successful for variation: NotSet"
+    let ans2 = Varn.load(vrn.Name,vrn.Isw)
+    ans2|>should equal vrn
+    let fn = Path.Combine(Varn.wfol,vrn.Name+".pgn")
+    File.Exists(fn)|>should equal true
+    Varn.delete(vrn.Name,vrn.Isw)
+    File.Exists(fn)|>should equal false

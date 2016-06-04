@@ -215,13 +215,12 @@ module Varn =
     
     ///load - deserializes to a varn from a file
     let load (nm, isw) = 
-        //set this to file in White folder with filename same as name
+        //set this to file in White/Black folder with filename same as name
         let pfn = 
             Path.Combine((if isw then wfol
                           else bfol), nm + ".pgn")
         
         let pgns = PGN.ReadFromFile pfn
-        //TODO
         let brchs = pgns |> List.map (fun g -> g.Moves)
         { Name = nm
           Isw = isw
@@ -262,7 +261,5 @@ module Varn =
     
     ///delete - deletes the variation file 
     let delete (nm, isw) = 
-        File.Delete(Path.Combine((if isw then wfol
-                                  else bfol), nm + ".json"))
         File.Delete(Path.Combine((if isw then wfol
                                   else bfol), nm + ".pgn"))

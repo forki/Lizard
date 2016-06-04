@@ -62,9 +62,6 @@
   </Target>
   -->
   <ItemGroup>
-    <Content Include="license.txt">
-      <Paket>True</Paket>
-    </Content>
     <Compile Include="AssemblyInfo.fs" />
     <None Include="App.config" />
     <EmbeddedResource Include="Cursors\BlackBishop.cur" />
@@ -153,6 +150,9 @@
     <None Include="App.config" />
     <Compile Include="Program.fs" />
     <None Include="paket.references" />
+    <None Include="Options.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Reference Include="mscorlib" />
@@ -165,7 +165,7 @@
     <Reference Include="System.Drawing" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Windows.Forms.Ribbon35">
-      <HintPath>..\lib\System.Windows.Forms.Ribbon35.dll</HintPath>
+      <HintPath>..\..\lib\System.Windows.Forms.Ribbon35.dll</HintPath>
     </Reference>
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Xml" />

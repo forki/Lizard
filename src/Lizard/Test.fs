@@ -140,7 +140,7 @@ module Test =
         (wl @ bl) |> List.toArray
     
     // GENERAL FUNCTIONS
-    let GetPosn tst = tst.Mvl
+    let GetPosn tst = tst.Mvl|>Pos.FromMoves
     
     let rec ListIncl (tst : TestDet) tstlst = 
         if List.isEmpty tstlst then false

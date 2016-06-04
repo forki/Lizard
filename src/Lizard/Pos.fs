@@ -77,6 +77,15 @@ type Pos(isqs : char [], iisw : bool) =
     
     /// Gets initial Pos
     static member Start() = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w" |> Pos.FromString
+
+    /// loads Pos given a Move list
+    static member FromMoves(imvl : Move list) = 
+        let rec domvs mvl (pos:Pos) =
+            if List.isEmpty mvl then pos
+            else 
+                pos.DoMv mvl.Head
+                domvs mvl.Tail pos
+        domvs imvl (Pos.Start())
     
     member x.Set(s : string) = 
         let sqs, isw = Pos.Parse(s)

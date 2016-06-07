@@ -18,29 +18,41 @@ type Mode =
 type PosnState(sst:SharedState) = 
     let mutable pos = Pos.Start()
     let mutable mvs = []
-    let mutable psmvs:Move list = []
+    let mutable pssqs:int list = []
     let mutable cfdt = FcsDt.empfdb
     let mutable canl = Eng.empanl
     //Events
     let pchngEvt = new Event<_>()
+    let mchngEvt = new Event<_>()
     let bmchngEvt = new Event<_>()
     let promEvt = new Event<_>()
-    let psmvsEvt = new Event<_>()
+    let pssqsEvt = new Event<_>()
     let orntEvt = new Event<_>()
     let fdtchngEvt = new Event<_>()
     //publish
     member x.PosChng = pchngEvt.Publish
+    member x.MvsChng = mchngEvt.Publish
     member x.BmChng = bmchngEvt.Publish
     member x.Prom = promEvt.Publish
-    member x.PsMvs = psmvsEvt.Publish
+    member x.PsSqsChng = pssqsEvt.Publish
     member x.Ornt = orntEvt.Publish
     member x.FdtChng = fdtchngEvt.Publish
     //members
-    member x.CurPos = pos
-    member x.CurMvs = mvs
-    member x.SetPos ps =
-        pos <- ps
-        pos |> pchngEvt.Trigger
+    member x.Pos
+        with get () = pos
+        and set (value) = 
+            pos <- value
+            pos |> pchngEvt.Trigger
+    member x.Mvs
+        with get () = mvs
+        and set (value) = 
+            mvs <- value
+            mvs |> mchngEvt.Trigger
+    member x.PsSqs
+        with get () = pssqs
+        and set (value) = 
+            pssqs <- value
+            pssqs |> pssqsEvt.Trigger
     member x.SetCanl() =
         canl <- pos.ToString()
                 |> Eng.getanl (Eng.loadLineStore())
@@ -49,34 +61,29 @@ type PosnState(sst:SharedState) =
         cfdt <- pos.ToString()
                 |> FcsDt.getfdb (FcsDt.loadFicsDbStore())
         cfdt |> fdtchngEvt.Trigger
-    member x.SetPsmvs pms =
-        psmvs <- pms
-        psmvs |> psmvsEvt.Trigger
     member x.Move(mfrom, mto) = 
-        if psmvs.Length > 0 then 
-            let mvl = psmvs |> List.filter (fun m -> m.Mto = mto)
-            if mvl.Length = 1 then 
-                let mv = mvl.[0]
-                //x.SetPos(Posn.DoMove(mv, pos))
+        if pssqs.Length > 0 then 
+            let mv = pos.GetMvFT(mfrom,mto)
+            if mv.Mtyp=Prom('Q') then (mv,pos.IsW) |> promEvt.Trigger
+            elif mv.Mtyp<>Invalid then 
+                x.Pos.DoMv mv
+                mvs<-mvs@[mv]
                 x.SetCanl()
                 x.SetCfdt()
-                x.SetPsmvs []
+                x.PsSqs <- []
                 sst.DoMode()
-            elif mvl.Length > 1 then mvl |> promEvt.Trigger
             else 
                 pos |> pchngEvt.Trigger
                 x.SetCanl()
                 x.SetCfdt()
-                x.SetPsmvs []
+                x.PsSqs <- []
     member x.Promote(mv) = 
-        //x.SetPos(Posn.DoMove(mv, pos))
+        x.Pos.DoMv mv
         x.SetCanl()
         x.SetCfdt()
         sst.DoMode()
-    member x.GetPossMvs(mfrom) = ()
-//        let pcl = pos.Pcs |> List.filter (fun pc -> pc.Sq = mfrom)
-//        if pcl.Length > 0 && pcl.[0].IsW = pos.IsWhite then 
-//            x.SetPsmvs(Posn.GenLegalMvs(pcl.[0], pos))
+    member x.GetPossSqs(mfrom) = 
+        x.PsSqs <- pos.GetPossSqs(mfrom)
     member x.TrigOri(isw) = isw|>orntEvt.Trigger
 
 and VarnState(sst:SharedState) =
@@ -112,7 +119,8 @@ and VarnState(sst:SharedState) =
         let mvl = Varn.mvl (curv, vr, mv)
         selvar <- vr
         let pstt:PosnState = sst.Pstt
-        pstt.SetPos(Pos.FromMoves(mvl)) 
+        pstt.Mvs <- mvl
+        pstt.Pos <- Pos.FromMoves(mvl)
         pstt.SetCanl()
         pstt.SetCfdt()
     member x.OpenVarn(nm, isw) = 
@@ -154,21 +162,18 @@ and VarnState(sst:SharedState) =
         (curv |> Varn.lines, currAnls) |> cchngEvt.Trigger
     member x.GetNextMvs() = 
         let pstt:PosnState = sst.Pstt
-        let mvl = pstt.CurMvs
-        Varn.findnmvs mvl curv.Brchs
+        Varn.findnmvs pstt.Mvs curv.Brchs
     member x.DoNextMv(mv) = 
         let pstt:PosnState = sst.Pstt
-        let pos = pstt.CurPos
-        let move = pos.GetMv(mv)
-        pos.DoMv(move)
-        pstt.SetPos(pos) 
+        let move = pstt.Pos.GetMv(mv)
+        pstt.Pos.DoMv(move)
+        pstt.Mvs <- pstt.Mvs@[move]
         pstt.SetCanl()
         pstt.SetCfdt()
-        let mvs = pstt.CurMvs
-        let oselvar = Varn.findsv mvs curv.Brchs
+        let oselvar = Varn.findsv pstt.Mvs curv.Brchs
         if oselvar.IsSome then 
             selvar <- oselvar.Value
-            let selmv = mvs.Length - 1
+            let selmv = pstt.Mvs.Length - 1
             (selvar, selmv) |> selCelEvt.Trigger
     member x.TrigCurv(cc) = cc|>cchngEvt.Trigger
     member x.TrigSelv(ss) = ss|>selCelEvt.Trigger
@@ -216,7 +221,7 @@ and TestState(sst:SharedState) =
     member x.SetTestPos(i) = 
         let pstt:PosnState = sst.Pstt
         if numtst <> i then 
-            pstt.SetPos(Test.GetPosn(tests.[i]))
+            pstt.Pos<-Test.GetPosn(tests.[i])
             numtst <- i
     member x.CloseTest() = 
         let results = 
@@ -384,7 +389,6 @@ and AnalState(sst:SharedState) =
         // call calcs
         // need to send game position moves as UCI
         let pstt = sst.Pstt
-        let pos = pstt.CurPos
         //Game.ComputeAnswer(Posn.psn2str pos, 99, procp)
         isanl <- true
         isanl |> apchngEvt.Trigger
@@ -439,7 +443,7 @@ and GameState(sst:SharedState) =
     member x.NewGame(isw) = 
         let pstt = sst.Pstt
         let vstt = sst.Vstt
-        //pstt.SetPos(Posn.st)
+        pstt.Pos <- Pos.Start()
         vstt.SetIsw(isw)
         isw |> pstt.TrigOri
         sst.SetMode(DoPlay)
@@ -451,14 +455,10 @@ and GameState(sst:SharedState) =
         if uopn then vstt.SetVarn(Varn.loada ("<All>", isw))
         let curv = vstt.CurVarn
         if isw && uopn then 
-            let mvs = pstt.CurMvs
-            let pos = pstt.CurPos
-            let mvl = Varn.findnmvs mvs curv.Brchs
+            let mvl = Varn.findnmvs pstt.Mvs curv.Brchs
             if mvl.Length > 0 then 
-                pos.DoMv mvl.Head
-                pstt.SetPos(pos)
-                let pos = pstt.CurPos
-                [ mvl.Head ] |> tosqEvt.Trigger
+                pstt.Pos.DoMv mvl.Head
+                [ mvl.Head.Mto ] |> tosqEvt.Trigger
                 gm <- gm + "1. " + mvl.Head.Mpgn + " "
                 (gm, ghdr) |> gmchngEvt.Trigger
                 x.AnlPos()
@@ -478,10 +478,8 @@ and GameState(sst:SharedState) =
                 if (line.StartsWith("bestmove")) then 
                     let bits = line.Split([| ' ' |])
                     let pstt = sst.Pstt
-                    let pos = pstt.CurPos
                     //let bm = Posn.FndMv(bits.[1], pos)
                     //pstt.SetPos(Posn.DoMove(bm.Value, pos))
-                    let pos = pstt.CurPos
                     //[ bm.Value ] |> tosqEvt.Trigger
                     prc.Kill()
                     //let mvstr = pos.Mhst.Head.PGN
@@ -496,12 +494,9 @@ and GameState(sst:SharedState) =
                     (gm, ghdr) |> gmchngEvt.Trigger
                     if uopn then 
                         let curv = vstt.CurVarn
-                        let mvs = pstt.CurMvs
-                        let mvl = Varn.findnmvs mvs curv.Brchs
+                        let mvl = Varn.findnmvs pstt.Mvs curv.Brchs
                         if mvl.Length > 0 then 
-                            let pos = pstt.CurPos
                             //pstt.SetPos(Posn.DoMove(mvl.Head, pos))
-                            let pos = pstt.CurPos
 //                            gm <- gm 
 //                                  + (if not visw then ""
 //                                     else (pos.Mhst.Length / 2 + 1).ToString() 
@@ -512,7 +507,6 @@ and GameState(sst:SharedState) =
         prc.OutputDataReceived.Add(pOut)
         Game.SetUpPrc prc eng
         let pstt = sst.Pstt
-        let pos = pstt.CurPos
         ()
         //Game.ComputeAnswer(Posn.psn2str pos, -1, prc)
     member x.FicsSend(msg) = 
@@ -543,13 +537,10 @@ and GameState(sst:SharedState) =
         let uopn = opts.Guseopn
         if uopn then vstt.SetVarn(Varn.loada ("<All>", true))
         if uopn then 
-            let pos = pstt.CurPos
             let curv = vstt.CurVarn
-            let mvs = pstt.CurMvs
-            let mvl = Varn.findnmvs mvs curv.Brchs
+            let mvl = Varn.findnmvs pstt.Mvs curv.Brchs
             if mvl.Length > 0 then 
                 //pstt.SetPos(Posn.DoMove(mvl.Head, pos))
-                let pos = pstt.CurPos
                 //gm <- gm + "1. " + pos.Mhst.Head.PGN + " "
                 (gm, ghdr) |> gmchngEvt.Trigger
                 //remove promotion as FICS defaults to Q unless you send "promote n"
@@ -590,8 +581,6 @@ and GameState(sst:SharedState) =
 //            let pos = pstt.CurPos
 //            let fmv = Posn.pgn2mov pos pgnmv
 //            pstt.SetPos(Posn.DoMove(fmv, pos))
-            let pos = pstt.CurPos
-            let mvs = pstt.CurMvs
 //            [ fmv ] |> tosqEvt.Trigger
 //            let mvstr = pos.Mhst.Head.PGN
 //            gm <- gm 
@@ -601,18 +590,16 @@ and GameState(sst:SharedState) =
 //            if mvstr.EndsWith("#") then 
 //                ghdr <- { ghdr with Result = if visw then Bwin else Wwin }
             (gm, ghdr) |> gmchngEvt.Trigger
-            if mvs.Head.Mpgn.EndsWith("#") then 
+            if pstt.Mvs.Head.Mpgn.EndsWith("#") then 
                 fendEvt.Trigger()
                 false
             else 
                 let uopn = opts.Guseopn
                 if uopn then 
                     let curv = vstt.CurVarn
-                    let mvl = Varn.findnmvs mvs curv.Brchs
+                    let mvl = Varn.findnmvs pstt.Mvs curv.Brchs
                     if mvl.Length > 0 then 
-                        let pos = pstt.CurPos
                         //pstt.SetPos(Posn.DoMove(mvl.Head, pos))
-                        let pos = pstt.CurPos
 //                        gm <- gm 
 //                                + (if not visw then ""
 //                                    else (pos.Mhst.Length / 2 + 1).ToString() + ". ") 
@@ -732,7 +719,6 @@ and GameState(sst:SharedState) =
             MessageBox.Show("Unable to initiate connection: " + ex.ToString())|> ignore
     member x.SavePGN() = 
         let pstt = sst.Pstt
-        let pos = pstt.CurPos
         let mode = sst.Mode
         match mode with
 //        | DoPlay -> Game.updPGN pos (ghdr : Gmhdr) "EngGames.pgn"
@@ -746,7 +732,6 @@ and GameState(sst:SharedState) =
         let pstt = sst.Pstt
         //TODO
 //        if pgngms.Length > 0 then pstt.SetPos(Posn.pgn2pos pgngms.[rw - 1])
-        let pos = pstt.CurPos
 //        gm <- Posn.psn2pgn pos
         (gm, pgngms.[rw - 1]) |> dbgmldEvt.Trigger
 //        pgnmvs <- pos.Mhst
@@ -754,9 +739,7 @@ and GameState(sst:SharedState) =
 //                  |> List.toArray
     member x.GetPgnPos(off) = 
         let pstt = sst.Pstt
-        let pos = pstt.CurPos
-        let mvs = pstt.CurMvs
-        let cnum = mvs.Length - 1
+        let cnum = pstt.Mvs.Length - 1
         ()
 //        let p = 
 //            if off = 0 then Posn.st
@@ -797,22 +780,20 @@ and SharedState() as x =
         mode <- md
         mode |> mchngEvt.Trigger
     member x.DoMode() = 
-        let pos = pstt.CurPos
-        let mvs = pstt.CurMvs
         match mode with
         | DoVarn -> 
             //update Varn
             let curv = vstt.CurVarn
-            vstt.SetVarn(Varn.add curv mvs)
+            vstt.SetVarn(Varn.add curv pstt.Mvs)
             let curv = vstt.CurVarn
             let currAnls = Eng.getanls (Eng.loadLineStore(), curv)
             (curv |> Varn.lines, currAnls) |> vstt.TrigCurv
             //update selected cell
-            let oselvar = Varn.findsv mvs curv.Brchs
+            let oselvar = Varn.findsv pstt.Mvs curv.Brchs
             if oselvar.IsSome then 
                 vstt.SetVar(oselvar.Value)
                 let selvar = vstt.SelVar
-                let selmv = mvs.Length - 1
+                let selmv = pstt.Mvs.Length - 1
                 (selvar, selmv) |> vstt.TrigSelv
         | DoTest -> 
             //update tests

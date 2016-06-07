@@ -222,19 +222,22 @@ module Controls =
         let flbls : Label [] = Array.zeroCreate 8
         let rlbls : Label [] = Array.zeroCreate 8
         
-        let pccrs = 
-            [ cur "WhitePawn.cur"
-              cur "WhiteBishop.cur"
-              cur "WhiteKnight.cur"
-              cur "WhiteRook.cur"
-              cur "WhiteKing.cur"
-              cur "WhiteQueen.cur"
-              cur "BlackPawn.cur"
-              cur "BlackBishop.cur"
-              cur "BlackKnight.cur"
-              cur "BlackRook.cur"
-              cur "BlackKing.cur"
-              cur "BlackQueen.cur" ]
+        /// get cursor given char
+        let getcur c = 
+            match c with
+            | 'P' -> cur "WhitePawn.cur"
+            | 'B' -> cur "WhiteBishop.cur"
+            | 'N' -> cur "WhiteKnight.cur"
+            | 'R' -> cur "WhiteRook.cur"
+            | 'K' -> cur "WhiteKing.cur"
+            | 'Q' -> cur "WhiteQueen.cur"
+            | 'p' -> cur "BlackPawn.cur"
+            | 'b' -> cur "BlackBishop.cur"
+            | 'n' -> cur "BlackKnight.cur"
+            | 'r' -> cur "BlackRook.cur"
+            | 'k' -> cur "BlackKing.cur"
+            | 'q' -> cur "BlackQueen.cur"
+            | _ -> failwith "invalid piece"
         
         /// get image given char
         let getim c = 
@@ -256,7 +259,7 @@ module Controls =
         /// creates file label
         let flbl i lbli = 
             let lbl = new Label()
-            lbl.Text <- Lizard.Ref.fs.[i]
+            lbl.Text <- Lizard.Ref.fs.[i].ToString()
             lbl.Font <- new Font("Arial", 12.0F, FontStyle.Bold, GraphicsUnit.Point, byte (0))
             lbl.ForeColor <- Color.Green
             lbl.Height <- 21
@@ -295,22 +298,18 @@ module Controls =
         /// Action for Mouse Down
         let mouseDown (p : PictureBox, e : MouseEventArgs) = 
             if e.Button = MouseButtons.Left then 
-                let cpos = pstt.CurPos
                 let sqFrom = System.Convert.ToInt32(p.Tag)
-                ()
-        
-        //let pcl = cpos.Pcs |> List.filter (fun pc -> pc.Sq = sqFrom)
-        //                if pcl.Length > 0 then 
-        //                    pstt.GetPossMvs(sqFrom)
-        //                    let oimg = p.Image
-        //                    p.Image <- null
-        //                    p.Refresh()
-        //                    cCur <- pccrs.[pcl.[0].Img]
-        //                    sqpnl.Cursor <- cCur
-        //                    if (p.DoDragDrop(pcl.[0].Img, DragDropEffects.Move) = DragDropEffects.Move) then 
-        //                        pstt.Move(sqFrom, sqTo)
-        //                    else p.Image <- oimg
-        //                    sqpnl.Cursor <- Cursors.Default
+                pstt.GetPossSqs(sqFrom)
+                let oimg = p.Image
+                p.Image <- null
+                p.Refresh()
+                let c = pstt.Pos.Sqs.[sqFrom]
+                cCur <- getcur c
+                sqpnl.Cursor <- cCur
+                if (p.DoDragDrop(oimg, DragDropEffects.Move) = DragDropEffects.Move) then 
+                    pstt.Move(sqFrom, sqTo)
+                else p.Image <- oimg
+                sqpnl.Cursor <- Cursors.Default
         ///set board colours and position of squares
         let setsq i sqi = 
             let r = i / 8
@@ -364,17 +363,17 @@ module Controls =
             else ori()
         
         ///highlight possible squares
-        let highlightsqs ml = 
+        let highlightsqs sl = 
             sqs |> Array.iteri (fun i sq -> 
-                       sqs.[i].BackColor <- if (i % 8 + i / 8) % 2 = 0 then Color.Green
+                       sqs.[i].BackColor <- if (i % 8 + i / 8) % 2 = 1 then Color.Green
                                             else Color.PaleGreen)
-            ml |> List.iter (fun m -> 
-                      sqs.[m.Mto].BackColor <- if (m.Mto % 8 + m.Mto / 8) % 2 = 0 then Color.YellowGreen
+            sl |> List.iter (fun s -> 
+                      sqs.[s].BackColor <- if (s % 8 + s / 8) % 2 = 1 then Color.YellowGreen
                                                else Color.Yellow)
         
         ///show promotion dialog
-        let showprom (mvs) = 
-            let dprom = new DlgProm(mvs)
+        let showprom (mv,isw) = 
+            let dprom = new DlgProm(mv,isw)
             dprom.ShowDialog() |> ignore
         
         ///update bm
@@ -385,7 +384,7 @@ module Controls =
         do 
             sqs |> Array.iteri setsq
             sqs |> Array.iter sqpnl.Controls.Add
-            pstt.CurPos |> setpcs
+            pstt.Pos |> setpcs
             edges |> List.iter this.Controls.Add
             flbls |> Array.iteri flbl
             flbls |> Array.iter this.Controls.Add
@@ -396,7 +395,7 @@ module Controls =
             bmpnl |> this.Controls.Add
             //events
             pstt.PosChng |> Observable.add setpcs
-            pstt.PsMvs |> Observable.add highlightsqs
+            pstt.PsSqsChng |> Observable.add highlightsqs
             pstt.Prom |> Observable.add showprom
             pstt.Ornt |> Observable.add orient
             gstt.GameSqTo |> Observable.add highlightsqs

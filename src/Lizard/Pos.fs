@@ -18,35 +18,6 @@ type Pos(isqs : char [], iisw : bool) =
         let fd = abs (a % 8 - b % 8)
         rd = 2 && fd = 1 || fd = 2 && rd = 1
     
-    ///Dictionary of files
-    let fDct = 
-        [ 'a'..'h' ]
-        |> List.mapi (fun i c -> c, i)
-        |> dict
-    
-    ///Dictionary of ranks
-    let rDct = 
-        [ 1..8 ]
-        |> List.rev
-        |> List.mapi (fun i c -> char (c.ToString()), i)
-        |> dict
-    
-    ///Dictionary of squares
-    let SqDct = 
-        [ for r = 8 downto 1 do
-              for f in [ 'a'..'h' ] do
-                  yield f.ToString() + r.ToString() ]
-        |> List.mapi (fun i s -> s, i)
-        |> dict
-    
-    ///Dictionary of squares reversed
-    let SqDctRev = 
-        [ for r = 8 downto 1 do
-              for f in [ 'a'..'h' ] do
-                  yield f.ToString() + r.ToString() ]
-        |> List.mapi (fun i s -> i, s)
-        |> dict
-    
     member val Sqs = sqs with get, set
     member val IsW = isw with get, set
     member val CustomizationFunctions = [] with get, set
@@ -117,28 +88,28 @@ type Pos(isqs : char [], iisw : bool) =
         mv |> x.DoMv
     
     /// Make a move
-    member internal x.DoMv(mv : Move) = 
+    member x.DoMv(mv : Move) = 
         x.IsW <- not x.IsW
         let c = x.Sqs.[mv.Mfrom]
         x.Sqs.[mv.Mfrom] <- ' '
         x.Sqs.[mv.Mto] <- c
-        if mv.Mtyp.IsSome then 
-            match mv.Mtyp.Value with
-            | Prom(c) -> 
-                x.Sqs.[mv.Mto] <- if x.IsW then c |> Char.ToLower
-                                  else c
-            | CasK -> 
-                x.Sqs.[mv.Mto - 1] <- x.Sqs.[mv.Mto + 1]
-                x.Sqs.[mv.Mto + 1] <- ' '
-            | CasQ -> 
-                x.Sqs.[mv.Mto + 1] <- x.Sqs.[mv.Mto - 2]
-                x.Sqs.[mv.Mto - 2] <- ' '
-            | Ep -> 
-                if x.IsW then x.Sqs.[mv.Mto - 8] <- ' '
-                else x.Sqs.[mv.Mto + 8] <- ' '
+        match mv.Mtyp with
+        | Prom(c) -> 
+            x.Sqs.[mv.Mto] <- if x.IsW then c |> Char.ToLower
+                                else c
+        | CasK -> 
+            x.Sqs.[mv.Mto - 1] <- x.Sqs.[mv.Mto + 1]
+            x.Sqs.[mv.Mto + 1] <- ' '
+        | CasQ -> 
+            x.Sqs.[mv.Mto + 1] <- x.Sqs.[mv.Mto - 2]
+            x.Sqs.[mv.Mto - 2] <- ' '
+        | Ep -> 
+            if x.IsW then x.Sqs.[mv.Mto - 8] <- ' '
+            else x.Sqs.[mv.Mto + 8] <- ' '
+        |_ -> ()
     
     /// Gets Move from string
-    member internal x.GetMv mv = 
+    member x.GetMv mv = 
         //Active pattern to parse move string
         let (|SimpleMove|Castle|PawnCapture|AbiguousFile|AbiguousRank|Promotion|PromCapture|) s = 
             if Regex.IsMatch(s, "^[BNRQK][a-h][1-8]$") then SimpleMove(s.[0], s.[1..])
@@ -165,31 +136,31 @@ type Pos(isqs : char [], iisw : bool) =
         match m with
         //simple pawn move e.g. d4
         | SimpleMove('P', sq) -> 
-            let mto = SqDct.[sq]
+            let mto = Ref.SqDct.[sq]
             if x.IsW then 
                 if x.Sqs.[mto + 8] = 'P' then 
                     { Mfrom = mto + 8
                       Mto = mto
-                      Mtyp = None
+                      Mtyp = Standard
                       Mpgn = mv }
                 else 
                     { Mfrom = mto + 16
                       Mto = mto
-                      Mtyp = None
+                      Mtyp = Standard
                       Mpgn = mv }
             else if x.Sqs.[mto - 8] = 'p' then 
                 { Mfrom = mto - 8
                   Mto = mto
-                  Mtyp = None
+                  Mtyp = Standard
                   Mpgn = mv }
             else 
                 { Mfrom = mto - 16
                   Mto = mto
-                  Mtyp = None
+                  Mtyp = Standard
                   Mpgn = mv }
         //simple piece move e.g. Nf3
         | SimpleMove(p, sq) -> 
-            let mto = SqDct.[sq]
+            let mto = Ref.SqDct.[sq]
             
             let pc = 
                 if x.IsW then p
@@ -204,7 +175,7 @@ type Pos(isqs : char [], iisw : bool) =
             if mfs.Length = 1 then 
                 { Mfrom = mfs.[0]
                   Mto = mto
-                  Mtyp = None
+                  Mtyp = Standard
                   Mpgn = mv }
             else 
                 match pc with
@@ -213,7 +184,7 @@ type Pos(isqs : char [], iisw : bool) =
                     if ms.Length = 1 then 
                         { Mfrom = ms.[0]
                           Mto = mto
-                          Mtyp = None
+                          Mtyp = Standard
                           Mpgn = mv }
                     //filter out moves that lead to check
                     else 
@@ -223,7 +194,7 @@ type Pos(isqs : char [], iisw : bool) =
                             let mov = 
                                 { Mfrom = m
                                   Mto = mto
-                                  Mtyp = None
+                                  Mtyp = Standard
                                   Mpgn = mv }
                             np.DoMv mov
                             let kc = 
@@ -275,7 +246,7 @@ type Pos(isqs : char [], iisw : bool) =
                         if nms.Length = 1 then 
                             { Mfrom = nms.[0]
                               Mto = mto
-                              Mtyp = None
+                              Mtyp = Standard
                               Mpgn = mv }
                         else fl()
                 | 'B' | 'b' -> 
@@ -283,7 +254,7 @@ type Pos(isqs : char [], iisw : bool) =
                     if fmfs.Length = 1 then 
                         { Mfrom = fmfs.[0]
                           Mto = mto
-                          Mtyp = None
+                          Mtyp = Standard
                           Mpgn = mv }
                     else fl()
                 | 'Q' | 'q' -> 
@@ -291,7 +262,7 @@ type Pos(isqs : char [], iisw : bool) =
                     if fmfs.Length = 1 then 
                         { Mfrom = fmfs.[0]
                           Mto = mto
-                          Mtyp = None
+                          Mtyp = Standard
                           Mpgn = mv }
                     else 
                         let rec getval fl = 
@@ -330,14 +301,14 @@ type Pos(isqs : char [], iisw : bool) =
                         
                         { Mfrom = mfrom
                           Mto = mto
-                          Mtyp = None
+                          Mtyp = Standard
                           Mpgn = mv }
                 | 'R' | 'r' -> 
                     let fmfs = mfs |> Array.filter (samefr mto)
                     if fmfs.Length = 1 then 
                         { Mfrom = fmfs.[0]
                           Mto = mto
-                          Mtyp = None
+                          Mtyp = Standard
                           Mpgn = mv }
                     else 
                         let rec getval fl = 
@@ -365,56 +336,56 @@ type Pos(isqs : char [], iisw : bool) =
                         
                         { Mfrom = mfrom
                           Mto = mto
-                          Mtyp = None
+                          Mtyp = Standard
                           Mpgn = mv }
                 | _ -> fl()
         | Castle(c) -> 
             if c = 'K' && x.IsW then 
                 { Mfrom = 60
                   Mto = 62
-                  Mtyp = CasK |> Some
+                  Mtyp = CasK
                   Mpgn = mv }
             elif c = 'K' then 
                 { Mfrom = 4
                   Mto = 6
-                  Mtyp = CasK |> Some
+                  Mtyp = CasK
                   Mpgn = mv }
             elif x.IsW then 
                 { Mfrom = 60
                   Mto = 58
-                  Mtyp = CasQ |> Some
+                  Mtyp = CasQ
                   Mpgn = mv }
             else 
                 { Mfrom = 4
                   Mto = 2
-                  Mtyp = CasQ |> Some
+                  Mtyp = CasQ
                   Mpgn = mv }
         //pawn capture like exd6
         | PawnCapture(f, sq) -> 
-            let mto = SqDct.[sq]
+            let mto = Ref.SqDct.[sq]
             
             let r = 
                 int (m.[2].ToString()) + (if x.IsW then -1
                                           else 1)
             
             let mtyp = 
-                if x.Sqs.[mto] = ' ' then Ep |> Some
-                else None
+                if x.Sqs.[mto] = ' ' then Ep
+                else Standard
             
-            let mfrom = SqDct.[f.ToString() + r.ToString()]
+            let mfrom = Ref.SqDct.[f.ToString() + r.ToString()]
             { Mfrom = mfrom
               Mto = mto
               Mtyp = mtyp
               Mpgn = mv }
         //ambiguous file like Nge2
         | AbiguousFile(p, f, sq) -> 
-            let mto = SqDct.[sq]
+            let mto = Ref.SqDct.[sq]
             
             let pc = 
                 if x.IsW then p
                 else p |> Char.ToLower
             
-            let fn = fDct.[f]
+            let fn = Ref.fDct.[f]
             
             let mfs = 
                 x.Sqs
@@ -424,7 +395,7 @@ type Pos(isqs : char [], iisw : bool) =
             if mfs.Length = 1 then 
                 { Mfrom = mfs.[0]
                   Mto = mto
-                  Mtyp = None
+                  Mtyp = Standard
                   Mpgn = mv }
             else 
                 match pc with
@@ -436,7 +407,7 @@ type Pos(isqs : char [], iisw : bool) =
                     if ms.Length = 1 then 
                         { Mfrom = ms.[0]
                           Mto = mto
-                          Mtyp = None
+                          Mtyp = Standard
                           Mpgn = mv }
                     else fl()
                 | 'R' | 'r' | 'Q' | 'q' -> 
@@ -444,19 +415,19 @@ type Pos(isqs : char [], iisw : bool) =
                     if fmfs.Length = 1 then 
                         { Mfrom = fmfs.[0]
                           Mto = mto
-                          Mtyp = None
+                          Mtyp = Standard
                           Mpgn = mv }
                     else fl()
                 | _ -> fl()
         //ambiguous rank like R7a6
         | AbiguousRank(p, r, sq) -> 
-            let mto = SqDct.[sq]
+            let mto = Ref.SqDct.[sq]
             
             let pc = 
                 if x.IsW then p
                 else p |> Char.ToLower
             
-            let rn = rDct.[r]
+            let rn = Ref.rDct.[r]
             
             let mfs = 
                 x.Sqs
@@ -466,7 +437,7 @@ type Pos(isqs : char [], iisw : bool) =
             if mfs.Length = 1 then 
                 { Mfrom = mfs.[0]
                   Mto = mto
-                  Mtyp = None
+                  Mtyp = Standard
                   Mpgn = mv }
             else 
                 match pc with
@@ -478,7 +449,7 @@ type Pos(isqs : char [], iisw : bool) =
                     if ms.Length = 1 then 
                         { Mfrom = ms.[0]
                           Mto = mto
-                          Mtyp = None
+                          Mtyp = Standard
                           Mpgn = mv }
                     else fl()
                 | 'R' | 'r' | 'Q' | 'q' -> 
@@ -486,36 +457,74 @@ type Pos(isqs : char [], iisw : bool) =
                     if rmfs.Length = 1 then 
                         { Mfrom = rmfs.[0]
                           Mto = mto
-                          Mtyp = None
+                          Mtyp = Standard
                           Mpgn = mv }
                     else fl()
                 | _ -> fl()
         //pawn promotion like b8=Q
         | Promotion(sq, pc) -> 
-            let mto = SqDct.[sq]
+            let mto = Ref.SqDct.[sq]
             
             let r = 
                 int (m.[1].ToString()) + (if x.IsW then -1
                                           else 1)
             
-            let mfrom = SqDct.[m.[0].ToString() + r.ToString()]
+            let mfrom = Ref.SqDct.[m.[0].ToString() + r.ToString()]
             { Mfrom = mfrom
               Mto = mto
-              Mtyp = Prom(pc) |> Some
+              Mtyp = Prom(pc)
               Mpgn = mv }
         //pawn promotion capture like a*b8=Q
         | PromCapture(f, sq, pc) -> 
-            let mto = SqDct.[sq]
+            let mto = Ref.SqDct.[sq]
             
             let r = 
                 int (m.[2].ToString()) + (if x.IsW then -1
                                           else 1)
             
-            let mfrom = SqDct.[f.ToString() + r.ToString()]
+            let mfrom = Ref.SqDct.[f.ToString() + r.ToString()]
             { Mfrom = mfrom
               Mto = mto
-              Mtyp = Prom(pc) |> Some
+              Mtyp = Prom(pc)
               Mpgn = mv }
     
-
-
+    /// Gets Move list give source and target
+    member internal x.GetPossSqs(mfrom) = 
+        let pc = x.Sqs.[mfrom]
+        match pc with
+        |'P' -> Ref.movsPW.[mfrom]
+        |'p' -> Ref.movsPB.[mfrom]
+        |'N' -> Ref.movsN.[mfrom]
+        |'n' -> Ref.movsN.[mfrom]
+        |'B' -> Ref.raysB.[mfrom]|>List.concat
+        |'b' -> Ref.raysB.[mfrom]|>List.concat
+        |'R' -> Ref.raysR.[mfrom]|>List.concat
+        |'r' -> Ref.raysR.[mfrom]|>List.concat
+        |'Q' -> Ref.raysQ.[mfrom]|>List.concat
+        |'q' -> Ref.raysQ.[mfrom]|>List.concat
+        |'K' -> Ref.movsK.[mfrom]
+        |'k' -> Ref.movsK.[mfrom]
+        |_ -> []
+    /// Gets Move list give source and target
+    member x.GetMvFT(mfrom,mto) = 
+        let pc = x.Sqs.[mfrom]
+        let mpgn = pc.ToString().ToUpper() + Ref.sq.[mto]
+        let mv =
+            { Mfrom = mfrom
+              Mto = mto
+              Mtyp = Standard
+              Mpgn = mpgn }
+        match pc with
+        |'P' -> {mv with Mpgn = Ref.sq.[mto]}
+        |'p' -> {mv with Mpgn = Ref.sq.[mto]}
+        |'N' -> mv
+        |'n' -> mv
+        |'B' -> mv
+        |'b' -> mv
+        |'R' -> mv
+        |'r' -> mv
+        |'Q' -> mv
+        |'q' -> mv
+        |'K' -> mv
+        |'k' -> mv
+        |_ -> {mv with Mtyp = Invalid}

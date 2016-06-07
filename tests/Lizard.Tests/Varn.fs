@@ -194,7 +194,7 @@ let ``Varn bvars``() =
 [<Test>]
 let ``Varn cur2txt``() =
     let ans = Varn.cur2txt vrn
-    ans.[0]|>should equal "d7d5 d2d3 d5d4 e2e4 d4e3"
+    ans.[0]|>should equal "d2d4 d7d6 d4d5 e7e5 d5e6"
 
 [<Test>]
 let ``Varn save``() =

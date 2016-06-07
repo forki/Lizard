@@ -57,16 +57,15 @@ module Varn =
     let mrgbrch (mb : Move list) (curbs : Move list list) = 
         // either same as existing branch and then either do nothing or replace
         // or extra branch and need to put next to the nearest
-        let mtchb = mb.[0..mb.Length - 2]
         
         //function to add to existing branch
         let rec addex front rear fnd = 
             if List.isEmpty rear then front, fnd
             else 
-                let curb = rear.Head |> List.rev
-                if curb.Length < mtchb.Length && curb = mtchb.[0..curb.Length - 1] then 
+                let curb:Move list = rear.Head
+                if curb.Length < mb.Length && curb = mb.[0..curb.Length - 1] then 
                     (front @ mb :: rear.Tail), true
-                elif curb.Length >= mtchb.Length && curb.[0..mtchb.Length - 1] = mtchb then 
+                elif curb.Length >= mb.Length && curb.[0..mb.Length - 1] = mb then 
                     if mb.[mb.Length - 1] = curb.[mb.Length - 1] then (front @ rear), true
                     else (front @ mb :: rear.Tail), true
                 else addex (front @ [ rear.Head ]) rear.Tail false

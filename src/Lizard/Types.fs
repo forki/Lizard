@@ -12,6 +12,8 @@ module Types =
         | CasK
         | CasQ
         | Ep
+        | Standard
+        | Invalid
     
     /// Index of square on the board
     type Sq = int
@@ -20,16 +22,14 @@ module Types =
     type Move = 
         { Mfrom : Sq
           Mto : Sq
-          Mtyp : MvTyp option
+          Mtyp : MvTyp
           Mpgn : string }
         override x.ToString() = x.Mpgn
         member x.UCI = 
             let mv = Ref.sq.[x.Mfrom] + Ref.sq.[x.Mto]
-            if x.Mtyp.IsNone then mv
-            else 
-                match x.Mtyp.Value with
-                | Prom(t) -> mv + t.ToString()
-                | _ -> mv
+            match x.Mtyp with
+            | Prom(t) -> mv + t.ToString()
+            | _ -> mv
     
     //storage of variations
     type Varn = 

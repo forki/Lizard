@@ -9,22 +9,22 @@ let ``Ref f 45``() =
      f.[45]|> should equal "f"
 [<Test>]
 let ``Ref r 45``() =
-     r.[45]|> should equal "6"
+     r.[45]|> should equal "3"
 [<Test>]
 let ``Ref sq 45``() =
-     sq.[45]|> should equal "f6"
+     sq.[45]|> should equal "f3"
 [<Test>]
 let ``Ref fi 45``() =
      fi.[45]|> should equal 5
 [<Test>]
 let ``Ref ri 45``() =
-     ri.[45]|> should equal 5
+     ri.[45]|> should equal 2
 [<Test>]
 let ``Ref GetOrdFR 45``() =
-     GetOrdFR(5,5)|> should equal 45
+     GetOrdFR(5,2)|> should equal 45
 [<Test>]
 let ``Ref ord 45``() =
-     ord('f','6')|> should equal 45
+     ord('f','3')|> should equal 45
 
 
 

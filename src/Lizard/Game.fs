@@ -44,31 +44,24 @@ module Game =
         prc.Start() |> ignore
         prc.BeginOutputReadLine()
     
-//    ///get game header given color
-//    let getghdr isw eng = 
-//        let opts = Opts.load()
-//        { blankhdr with White = 
-//                            (if isw then "Me"
-//                             else eng)
-//                        Black = 
-//                            (if not isw then "Me"
-//                             else eng)
-//                        Date = DateTime.Now.ToString("yyyy.MM.dd") }
-//    
-//    ///update PGN given position header and name
-//    let updPGN pos (hdr : Gmhdr) nm = 
-//        let nl = Environment.NewLine
-//        let opts = Opts.load()
-//        let pgnfil = Path.Combine(opts.Gmfol, nm)
-//        let hdrstr = 
-//            "[Event \"" + hdr.Event + "\"]" + nl + "[Site \"" + hdr.Site + "\"]" 
-//            + nl + "[Date \"" + hdr.Date + "\"]" + nl + "[Round \"" + hdr.Round 
-//            + "\"]" + nl + "[White \"" + hdr.White + "\"]" + nl + "[Black \"" 
-//            + hdr.Black + "\"]" + nl + "[Result \"" + hdr.Result.ToString() 
-//            + "\"]" + nl
-//        let mvsPgn = Posn.psn2pgn pos
-//        Directory.CreateDirectory opts.Gmfol |> ignore
-//        File.AppendAllText(pgnfil, hdrstr + mvsPgn)
-//        MessageBox.Show
-//            ("Game added to " + pgnfil, "Game Saved", MessageBoxButtons.OK, 
-//             MessageBoxIcon.Information) |> ignore
+    ///set game header given color
+    let setghdr isw eng (gm:PGN.Game) = 
+        { gm with White = 
+                    (if isw then "Me"
+                        else eng)
+                  Black = 
+                    (if not isw then "Me"
+                        else eng)
+                  Year = DateTime.Now.Year|>Convert.ToInt16|>Some 
+                  Month = DateTime.Now.Year|>Convert.ToByte|>Some 
+                  Day = DateTime.Now.Year|>Convert.ToByte|>Some }
+    
+    ///update PGN given position header and name
+    let updPGN gm nm = 
+        let opts = Opts.load()
+        let pgnfil = Path.Combine(opts.Gmfol, nm)
+        Directory.CreateDirectory opts.Gmfol |> ignore
+        File.AppendAllText(pgnfil, gm.ToString())
+        MessageBox.Show
+            ("Game added to " + pgnfil, "Game Saved", MessageBoxButtons.OK, 
+             MessageBoxIcon.Information) |> ignore

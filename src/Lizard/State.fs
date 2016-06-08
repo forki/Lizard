@@ -15,10 +15,10 @@ type Mode =
     | DoFics
     | DoDb
 
-type PosnState(sst:SharedState) = 
+type PosnState(sst : SharedState) = 
     let mutable pos = Pos.Start()
     let mutable mvs = []
-    let mutable pssqs:int list = []
+    let mutable pssqs : int list = []
     let mutable cfdt = FcsDt.empfdb
     let mutable canl = Eng.empanl
     //Events
@@ -37,38 +37,49 @@ type PosnState(sst:SharedState) =
     member x.PsSqsChng = pssqsEvt.Publish
     member x.Ornt = orntEvt.Publish
     member x.FdtChng = fdtchngEvt.Publish
+    
     //members
-    member x.Pos
+    member x.Pos 
         with get () = pos
         and set (value) = 
             pos <- value
             pos |> pchngEvt.Trigger
-    member x.Mvs
+    
+    member x.Mvs 
         with get () = mvs
         and set (value) = 
             mvs <- value
             mvs |> mchngEvt.Trigger
-    member x.MvsStr = x.Mvs|>List.map(fun (m:Move) -> m.UCI)|>List.reduce(fun a b -> a + " " + b)
-    member x.PsSqs
+    
+    member x.MvsStr = 
+        if List.isEmpty x.Mvs then ""
+        else 
+            x.Mvs
+            |> List.map (fun (m : Move) -> m.UCI)
+            |> List.reduce (fun a b -> a + " " + b)
+    
+    member x.PsSqs 
         with get () = pssqs
         and set (value) = 
             pssqs <- value
             pssqs |> pssqsEvt.Trigger
-    member x.SetCanl() =
-        canl <- x.MvsStr
-                |> Eng.getanl (Eng.loadLineStore())
+    
+    member x.SetCanl() = 
+        canl <- x.MvsStr |> Eng.getanl (Eng.loadLineStore())
         canl |> bmchngEvt.Trigger
-    member x.SetCfdt() =
-        cfdt <- x.MvsStr
-                |> FcsDt.getfdb (FcsDt.loadFicsDbStore())
+    
+    member x.SetCfdt() = 
+        cfdt <- x.MvsStr |> FcsDt.getfdb (FcsDt.loadFicsDbStore())
         cfdt |> fdtchngEvt.Trigger
+    
     member x.Move(mfrom, mto) = 
         if pssqs.Length > 0 then 
-            let mv = pos.GetMvFT(mfrom,mto)
-            if mv.Mtyp=Prom('Q') then (mv,pos.IsW) |> promEvt.Trigger
-            elif mv.Mtyp<>Invalid then 
+            let mv = pos.GetMvFT(mfrom, mto)
+            if mv.Mtyp = Prom('Q') then (mv, pos.IsW) |> promEvt.Trigger
+            elif mv.Mtyp <> Invalid then 
                 x.Pos.DoMv mv
-                mvs<-mvs@[mv]
+                x.Pos <- x.Pos
+                x.Mvs <- x.Mvs @ [ mv ]
                 x.SetCanl()
                 x.SetCfdt()
                 x.PsSqs <- []
@@ -78,24 +89,28 @@ type PosnState(sst:SharedState) =
                 x.SetCanl()
                 x.SetCfdt()
                 x.PsSqs <- []
+    
     member x.Promote(mv) = 
         x.Pos.DoMv mv
         x.SetCanl()
         x.SetCfdt()
         sst.DoMode()
-    member x.GetPossSqs(mfrom) = 
-        x.PsSqs <- pos.GetPossSqs(mfrom)
-    member x.TrigOri(isw) = isw|>orntEvt.Trigger
+    
+    member x.GetPossSqs(mfrom) = x.PsSqs <- pos.GetPossSqs(mfrom)
+    member x.TrigOri(isw) = isw |> orntEvt.Trigger
 
-and VarnState(sst:SharedState) =
+and VarnState(sst : SharedState) = 
     let mutable wvrs = Varn.wvars()
     let mutable bvrs = Varn.bvars()
     let mutable visw = true
+    
     let mutable curv = 
-        if visw then
-            if wvrs.Length>1 then Varn.load (wvrs.[0], visw) else Varn.emp
-        else
-            if bvrs.Length>1 then Varn.load (bvrs.[0], visw) else Varn.emp
+        if visw then 
+            if wvrs.Length > 1 then Varn.load (wvrs.[0], visw)
+            else Varn.emp
+        else if bvrs.Length > 1 then Varn.load (bvrs.[0], visw)
+        else Varn.emp
+    
     let mutable selvar = -1
     //Events
     let vchngEvt = new Event<_>()
@@ -112,29 +127,35 @@ and VarnState(sst:SharedState) =
     member x.SetVar sv = selvar <- sv
     member x.VarIsw = visw
     member x.SetIsw isw = visw <- isw
+    
     member x.Vars(isw) = 
         if isw then wvrs
         else bvrs
+    
     member x.GetVarn() = Varn.lines curv
+    
     member x.GetPos(vr, mv) = 
         let mvl = Varn.mvl (curv, vr, mv)
         selvar <- vr
-        let pstt:PosnState = sst.Pstt
+        let pstt : PosnState = sst.Pstt
         pstt.Mvs <- mvl
         pstt.Pos <- Pos.FromMoves(mvl)
         pstt.SetCanl()
         pstt.SetCfdt()
+    
     member x.OpenVarn(nm, isw) = 
-        let pstt:PosnState = sst.Pstt
+        let pstt : PosnState = sst.Pstt
         sst.SetMode(DoVarn)
         visw <- isw
         curv <- Varn.load (nm, visw)
         let currAnls = Eng.getanls (Eng.loadLineStore(), curv)
         (curv |> Varn.lines, currAnls) |> cchngEvt.Trigger
         visw |> pstt.TrigOri
+    
     member x.SaveVarn() = Varn.save (curv)
+    
     member x.NewVarn(nm, isw) = 
-        let pstt:PosnState = sst.Pstt
+        let pstt : PosnState = sst.Pstt
         sst.SetMode(DoVarn)
         curv <- Varn.cur (nm, isw)
         let currAnls = Eng.getanls (Eng.loadLineStore(), curv)
@@ -144,6 +165,7 @@ and VarnState(sst:SharedState) =
         else bvrs <- nm :: bvrs
         visw <- isw
         visw |> vchngEvt.Trigger
+    
     member x.SaveAsVarn(nm) = 
         curv <- Varn.saveas (curv, nm)
         let currAnls = Eng.getanls (Eng.loadLineStore(), curv)
@@ -151,24 +173,28 @@ and VarnState(sst:SharedState) =
         if visw then wvrs <- nm :: wvrs
         else bvrs <- nm :: bvrs
         visw |> vchngEvt.Trigger
+    
     member x.DelVarn(nm, isw) = 
         Varn.delete (nm, isw)
         if isw then wvrs <- Varn.wvars()
         else bvrs <- Varn.bvars()
         visw |> vchngEvt.Trigger
+    
     member x.DelLine() = 
         curv <- Varn.del curv selvar
         selvar <- -1
         let currAnls = Eng.getanls (Eng.loadLineStore(), curv)
         (curv |> Varn.lines, currAnls) |> cchngEvt.Trigger
+    
     member x.GetNextMvs() = 
-        let pstt:PosnState = sst.Pstt
+        let pstt : PosnState = sst.Pstt
         Varn.findnmvs pstt.Mvs curv.Brchs
+    
     member x.DoNextMv(mv) = 
-        let pstt:PosnState = sst.Pstt
+        let pstt : PosnState = sst.Pstt
         let move = pstt.Pos.GetMv(mv)
         pstt.Pos.DoMv(move)
-        pstt.Mvs <- pstt.Mvs@[move]
+        pstt.Mvs <- pstt.Mvs @ [ move ]
         pstt.SetCanl()
         pstt.SetCfdt()
         let oselvar = Varn.findsv pstt.Mvs curv.Brchs
@@ -176,10 +202,11 @@ and VarnState(sst:SharedState) =
             selvar <- oselvar.Value
             let selmv = pstt.Mvs.Length - 1
             (selvar, selmv) |> selCelEvt.Trigger
-    member x.TrigCurv(cc) = cc|>cchngEvt.Trigger
-    member x.TrigSelv(ss) = ss|>selCelEvt.Trigger
+    
+    member x.TrigCurv(cc) = cc |> cchngEvt.Trigger
+    member x.TrigSelv(ss) = ss |> selCelEvt.Trigger
 
-and TestState(sst:SharedState) =
+and TestState(sst : SharedState) = 
     //Test
     let mutable tests : TestDet [] = [||]
     let mutable numtst = -1
@@ -202,12 +229,13 @@ and TestState(sst:SharedState) =
     member x.ResLoad = resLoadEvt.Publish
     //members
     member x.Tests = tests
-    member x.SetTest(i,t) = tests.[i] <- t
+    member x.SetTest(i, t) = tests.[i] <- t
     member x.Num = numtst
-    member x.Done = tstsdone 
-    member x.SetDone td = tstsdone <- td 
-    member x.Cor = tstscor 
-    member x.SetCor tc = tstscor <- tc 
+    member x.Done = tstsdone
+    member x.SetDone td = tstsdone <- td
+    member x.Cor = tstscor
+    member x.SetCor tc = tstscor <- tc
+    
     member x.LoadTest(rnd, nm, isw) = 
         System.Windows.Forms.Cursor.Current <- System.Windows.Forms.Cursors.WaitCursor
         sst.SetMode(DoTest)
@@ -219,11 +247,13 @@ and TestState(sst:SharedState) =
         tisw <- isw
         trnd <- rnd
         tests |> tchgEvt.Trigger
+    
     member x.SetTestPos(i) = 
-        let pstt:PosnState = sst.Pstt
+        let pstt : PosnState = sst.Pstt
         if numtst <> i then 
-            pstt.Pos<-Test.GetPosn(tests.[i])
+            pstt.Pos <- Test.GetPosn(tests.[i])
             numtst <- i
+    
     member x.CloseTest() = 
         let results = 
             if trnd then Test.loadResults()
@@ -240,6 +270,7 @@ and TestState(sst:SharedState) =
         tisw <- false
         trnd <- false
         sst.SetMode(DoVarn)
+    
     //Test Results
     member x.ShowRes(rnd) = 
         resTabEvt.Trigger()
@@ -247,9 +278,10 @@ and TestState(sst:SharedState) =
             if rnd then Test.getallres()
             else Test.getallreslin()
         res |> resLoadEvt.Trigger
-    member x.TrigRes(rs) = rs|>tresEvt.Trigger
+    
+    member x.TrigRes(rs) = rs |> tresEvt.Trigger
 
-and AnalState(sst:SharedState) =
+and AnalState(sst : SharedState) = 
     //Analyse
     let mutable isanl = false
     let mutable proc = new System.Diagnostics.Process()
@@ -268,22 +300,20 @@ and AnalState(sst:SharedState) =
     let apchngEvt = new Event<_>()
     let ahpchngEvt = new Event<_>()
     let apmsgEvt = new Event<_>()
+    
     //main recursive function
-    let rec getAnswer(processBM, answer) linestore (vn:string[]) (opts, eng, nm) = 
+    let rec getAnswer (processBM, answer) linestore (vn : string []) (opts, eng, nm) = 
         let send msg = Game.Send(msg, proc)
-        if (processBM) then 
-            Eng.procbm(linestore, ln, mvct, answer,[ lastmsg; lastmsg1; lastmsg2 ])
+        if (processBM) then Eng.procbm (linestore, ln, mvct, answer, [ lastmsg; lastmsg1; lastmsg2 ])
         Eng.saveLineStore (linestore)
         let lnctnew = 
             if mvct = ln.Trim().Split(' ').Length then lnct + 1
             else -1
         if lnctnew = vn.Length then 
             if (dpth = opts.Emaxdepth) then 
-                send("stop")
-                send("")
-                let text = 
-                    "Finished processing variation " + nm + " to depth " 
-                    + dpth.ToString()
+                send ("stop")
+                send ("")
+                let text = "Finished processing variation " + nm + " to depth " + dpth.ToString()
                 text |> ahchngEvt.Trigger
             else 
                 ln <- vn.[0].Trim()
@@ -292,10 +322,9 @@ and AnalState(sst:SharedState) =
                 mvct <- min (mvs.Length - 1) 5
                 dpth <- dpth + 1
                 //clear for next line
-                Eng.hdr(eng, ln, lnct, mvct, dpth) |> ahchngEvt.Trigger
-                if (Eng.alreadyDone 
-                        (linestore, Eng.str2str (ln, mvct), dpth)) then 
-                    getAnswer(false, "") linestore vn (opts, eng, nm)
+                Eng.hdr (eng, ln, lnct, mvct, dpth) |> ahchngEvt.Trigger
+                if (Eng.alreadyDone (linestore, Eng.str2str (ln, mvct), dpth)) then 
+                    getAnswer (false, "") linestore vn (opts, eng, nm)
                 else Game.ComputeAnswer(Eng.str2str (ln, mvct), dpth, proc)
         else 
             if lnctnew <> -1 then 
@@ -305,11 +334,12 @@ and AnalState(sst:SharedState) =
                 lnct <- lnctnew
             else mvct <- mvct + 1
             //clear for next line
-            Eng.hdr(eng, ln, lnct, mvct, dpth) |> ahchngEvt.Trigger
+            Eng.hdr (eng, ln, lnct, mvct, dpth) |> ahchngEvt.Trigger
             //do next one
             if (Eng.alreadyDone (linestore, Eng.str2str (ln, mvct), dpth)) then 
-                getAnswer(false, "") linestore vn (opts, eng, nm)
+                getAnswer (false, "") linestore vn (opts, eng, nm)
             else Game.ComputeAnswer(Eng.str2str (ln, mvct), dpth, proc)
+    
     //publish
     member x.AnlChng = achngEvt.Publish
     member x.AnlHeadChng = ahchngEvt.Publish
@@ -317,14 +347,14 @@ and AnalState(sst:SharedState) =
     member x.AnlpChng = apchngEvt.Publish
     member x.AnlpHeadChng = ahpchngEvt.Publish
     member x.AnlpMsg = apmsgEvt.Publish
+    
     //members
     member x.CurrBms = 
-        let vstt:VarnState = sst.Vstt
+        let vstt : VarnState = sst.Vstt
         let curv = vstt.CurVarn
         let strs = Varn.cur2txt (curv)
         let vnpsns = curv.Brchs
-        Seq.map2 (Eng.strmvl2bms (Eng.loadLineStore())) strs vnpsns 
-        |> Seq.toArray
+        Seq.map2 (Eng.strmvl2bms (Eng.loadLineStore())) strs vnpsns |> Seq.toArray
     
     //Analyse Line
     member x.AnlStart(nm, isw) = 
@@ -333,6 +363,7 @@ and AnalState(sst:SharedState) =
         let linestore = Eng.loadLineStore()
         let opts = Opts.load()
         let eng = "stockfish.exe"
+        
         //p_out
         let pOut (e : System.Diagnostics.DataReceivedEventArgs) = 
             if not (e.Data = null || e.Data = "") then 
@@ -347,8 +378,7 @@ and AnalState(sst:SharedState) =
                     (lastmsg1, Eng.str2str (ln, mvct), dpth) |> amsgEvt.Trigger
                     (line, Eng.str2str (ln, mvct), dpth) |> amsgEvt.Trigger
                     let token = line.Split([| ' ' |])
-                    if token.Length > 1 then getAnswer(true, token.[1]) linestore vn (opts, eng, nm)
-        
+                    if token.Length > 1 then getAnswer (true, token.[1]) linestore vn (opts, eng, nm)
         proc.OutputDataReceived.Add(pOut)
         //Start process
         Game.SetUpPrc proc eng
@@ -360,11 +390,11 @@ and AnalState(sst:SharedState) =
         dpth <- 10
         // call calcs
         if (Eng.alreadyDone (linestore, Eng.str2str (ln, mvct), dpth)) then 
-            getAnswer(false, "") linestore vn (opts, eng, nm)
+            getAnswer (false, "") linestore vn (opts, eng, nm)
         else Game.ComputeAnswer(Eng.str2str (ln, mvct), dpth, proc)
         isanl <- true
         isanl |> achngEvt.Trigger
-        Eng.hdr(eng, ln, lnct, mvct, dpth) |> ahchngEvt.Trigger
+        Eng.hdr (eng, ln, lnct, mvct, dpth) |> ahchngEvt.Trigger
     
     member x.AnlStop() = 
         if proc <> null then proc.Kill()
@@ -401,18 +431,15 @@ and AnalState(sst:SharedState) =
         isanl |> apchngEvt.Trigger
         "Stopped" |> ahpchngEvt.Trigger
 
-and GameState(sst:SharedState) =
-    let mutable gm = ""
+and GameState(sst : SharedState) = 
+    let mutable gm = PGN.Game.Blank
     let nl = System.Environment.NewLine
     //Fics
     let mutable _socket : Socket = null
     let mutable _inBuffer : byte [] = null
     let mutable result = ""
-    //TODO
-    let mutable ghdr = ()//blankhdr
     //Database
     let mutable pgngms = []
-    let mutable pgnmvs = [||]
     //Events
     //game
     let gmchngEvt = new Event<_>()
@@ -437,10 +464,8 @@ and GameState(sst:SharedState) =
     member x.DbLoad = dbldEvt.Publish
     member x.DbGameLoad = dbgmldEvt.Publish
     //members
-    member x.Gm = gm
-    member x.SetGm g =  gm <- g
-    member x.Ghdr = ghdr
-    member x.SetGhdr gh =  ghdr <- gh
+    member val Gm = gm with get, set
+    
     member x.NewGame(isw) = 
         let pstt = sst.Pstt
         let vstt = sst.Vstt
@@ -449,9 +474,8 @@ and GameState(sst:SharedState) =
         isw |> pstt.TrigOri
         sst.SetMode(DoPlay)
         let opts = Opts.load()
-        //ghdr <- Game.getghdr isw opts.Geng
-        gm <- ""
-        (gm, ghdr) |> gmchngEvt.Trigger
+        x.Gm <- PGN.Game.Blank
+        x.Gm |> gmchngEvt.Trigger
         let uopn = opts.Guseopn
         if uopn then vstt.SetVarn(Varn.loada ("<All>", isw))
         let curv = vstt.CurVarn
@@ -459,19 +483,21 @@ and GameState(sst:SharedState) =
             let mvl = Varn.findnmvs pstt.Mvs curv.Brchs
             if mvl.Length > 0 then 
                 pstt.Pos.DoMv mvl.Head
+                pstt.Pos <- pstt.Pos
+                let mvs = [ mvl.Head ]
+                pstt.Mvs <- mvs
                 [ mvl.Head.Mto ] |> tosqEvt.Trigger
-                gm <- gm + "1. " + mvl.Head.Mpgn + " "
-                (gm, ghdr) |> gmchngEvt.Trigger
+                x.Gm <- { x.Gm with Moves = mvs }
+                x.Gm |> gmchngEvt.Trigger
                 x.AnlPos()
         else 
             if not isw then x.AnlPos()
+    
     member x.AnlPos() = 
         let prc = new System.Diagnostics.Process()
         let opts = Opts.load()
         let eng = "stockfish.exe"
-        let sec = opts.Gsecpm
         let uopn = opts.Guseopn
-        let send msg = Game.Send(msg, prc)
         
         let pOut (e : System.Diagnostics.DataReceivedEventArgs) = 
             if not (e.Data = null || e.Data = "") then 
@@ -479,119 +505,111 @@ and GameState(sst:SharedState) =
                 if (line.StartsWith("bestmove")) then 
                     let bits = line.Split([| ' ' |])
                     let pstt = sst.Pstt
-                    //let bm = Posn.FndMv(bits.[1], pos)
-                    //pstt.SetPos(Posn.DoMove(bm.Value, pos))
-                    //[ bm.Value ] |> tosqEvt.Trigger
+                    let bm = pstt.Pos.GetMvUCI(bits.[1])
+                    pstt.Pos.DoMv bm
+                    pstt.Pos <- pstt.Pos
+                    let mvs = x.Gm.Moves @ [ bm ]
+                    pstt.Mvs <- mvs
+                    [ bm.Mto ] |> tosqEvt.Trigger
                     prc.Kill()
-                    //let mvstr = pos.Mhst.Head.PGN
                     let vstt = sst.Vstt
-                    let visw = vstt.VarIsw
-//                    gm <- gm 
-//                          + (if visw then ""
-//                             else (pos.Mhst.Length / 2 + 1).ToString() + ". ") 
-//                          + mvstr + " "
-//                    if mvstr.EndsWith("#") then 
-//                        ghdr <- { ghdr with Result = if visw then Bwin else Wwin }
-                    (gm, ghdr) |> gmchngEvt.Trigger
+                    x.Gm <- { x.Gm with Moves = mvs }
+                    x.Gm |> gmchngEvt.Trigger
                     if uopn then 
                         let curv = vstt.CurVarn
                         let mvl = Varn.findnmvs pstt.Mvs curv.Brchs
                         if mvl.Length > 0 then 
-                            //pstt.SetPos(Posn.DoMove(mvl.Head, pos))
-//                            gm <- gm 
-//                                  + (if not visw then ""
-//                                     else (pos.Mhst.Length / 2 + 1).ToString() 
-//                                         + ". ") + pos.Mhst.Head.PGN + " "
-                            (gm, ghdr) |> gmchngEvt.Trigger
+                            pstt.Pos.DoMv(mvl.Head)
+                            pstt.Pos <- pstt.Pos
+                            let mvs = x.Gm.Moves @ [ mvl.Head ]
+                            pstt.Mvs <- mvs
+                            x.Gm <- { x.Gm with Moves = mvs }
+                            x.Gm |> gmchngEvt.Trigger
                             x.AnlPos()
                 else line |> gachngEvt.Trigger
         prc.OutputDataReceived.Add(pOut)
         Game.SetUpPrc prc eng
         let pstt = sst.Pstt
-        ()
-        //Game.ComputeAnswer(Posn.psn2str pos, -1, prc)
+        Game.ComputeAnswer(pstt.MvsStr, -1, prc)
+    
     member x.FicsSend(msg) = 
-        let rec onSend(ar : IAsyncResult) = 
+        let rec onSend (ar : IAsyncResult) = 
             _socket <- ar.AsyncState :?> Socket
             try 
                 let bytesSent = _socket.EndSend(ar)
                 ()
-            with ex -> 
-                MessageBox.Show(ex.Message, "Error processing send buffer!")|> ignore
+            with ex -> MessageBox.Show(ex.Message, "Error processing send buffer!") |> ignore
         try 
             let sendBytes = Encoding.ASCII.GetBytes(msg + "\n")
             let onsend = new AsyncCallback(onSend)
             _socket.BeginSend(sendBytes, 0, sendBytes.Length, SocketFlags.None, onsend, _socket) |> ignore
-        with ex -> 
-            MessageBox.Show("Setup receive callback failed: " + ex.ToString()) 
-            |> ignore
-    member x.DoFicsW(opts,buf) =
+        with ex -> MessageBox.Show("Setup receive callback failed: " + ex.ToString()) |> ignore
+    
+    member x.DoFicsW(opts, buf) = 
         let pstt = sst.Pstt
         let vstt = sst.Vstt
-        //pstt.SetPos(Posn.st)
+        pstt.Pos <- Pos.Start()
         vstt.SetIsw(true)
         true |> pstt.TrigOri
         fsttEvt.Trigger()
-        ghdr <- Fics.players (buf)
-        gm <- ""
-        (gm, ghdr) |> gmchngEvt.Trigger
+        x.Gm <- PGN.Game.Blank
+        x.Gm |> gmchngEvt.Trigger
         let uopn = opts.Guseopn
         if uopn then vstt.SetVarn(Varn.loada ("<All>", true))
         if uopn then 
             let curv = vstt.CurVarn
             let mvl = Varn.findnmvs pstt.Mvs curv.Brchs
             if mvl.Length > 0 then 
-                //pstt.SetPos(Posn.DoMove(mvl.Head, pos))
-                //gm <- gm + "1. " + pos.Mhst.Head.PGN + " "
-                (gm, ghdr) |> gmchngEvt.Trigger
-                //remove promotion as FICS defaults to Q unless you send "promote n"
-                //see http://www.freechess.org/Help/HelpFiles/promote.html
-                //x.FicsSend(mvl.Head.UCI.Substring(0, 4))
+                pstt.Pos.DoMv(mvl.Head)
+                pstt.Pos <- pstt.Pos
+                let mvs = x.Gm.Moves @ [ mvl.Head ]
+                pstt.Mvs <- mvs
+                x.Gm <- { x.Gm with Moves = mvs }
+                x.Gm |> gmchngEvt.Trigger
+        //remove promotion as FICS defaults to Q unless you send "promote n"
+        //see http://www.freechess.org/Help/HelpFiles/promote.html
+                x.FicsSend(mvl.Head.UCI.Substring(0, 4))
         true
-    member x.DoFicsB(opts,buf) =
+    
+    member x.DoFicsB(opts, buf) = 
         let pstt = sst.Pstt
         let vstt = sst.Vstt
-        //pstt.SetPos(Posn.st)
+        pstt.Pos <- Pos.Start()
         vstt.SetIsw(false)
         false |> pstt.TrigOri
         fsttEvt.Trigger()
-        ghdr <- Fics.players (buf)
-        gm <- ""
-        (gm, ghdr) |> gmchngEvt.Trigger
+        x.Gm <- PGN.Game.Blank
+        x.Gm |> gmchngEvt.Trigger
         let uopn = opts.Guseopn
         if uopn then vstt.SetVarn(Varn.loada ("<All>", false))
         true
-    member x.DoFicsEnd(buf:string) =
+    
+    member x.DoFicsEnd(buf : string) = 
         result <- buf.Split([| '}' |]).[1].Substring(1, 3)
-//        ghdr <- { ghdr with Result = 
-//                                if result = "1-0" then Wwin
-//                                elif result = "0-1" then Bwin
-//                                else Draw }
-        (gm, ghdr) |> gmchngEvt.Trigger
+        x.Gm <- { x.Gm with Result = 
+                            if result = "1-0" then PGN.GameResult.WhiteWins
+                            elif result = "0-1" then PGN.GameResult.BlackWins
+                            else PGN.GameResult.Draw }
+        x.Gm |> gmchngEvt.Trigger
         fendEvt.Trigger()
         false
-    member x.DoFicsMove(opts,buf) =
+    
+    member x.DoFicsMove(opts, buf) = 
         let pstt = sst.Pstt
         let vstt = sst.Vstt
         let wtm, btm, mv, misw = Fics.tmMove (buf)
         (wtm, btm, misw) |> ftimEvt.Trigger
         let visw = vstt.VarIsw
-        if misw = visw then
-        //TODO 
-//            let pgnmv = Lizard.PGN.PgnParser.getpgnmv mv
-//            let pos = pstt.CurPos
-//            let fmv = Posn.pgn2mov pos pgnmv
-//            pstt.SetPos(Posn.DoMove(fmv, pos))
-//            [ fmv ] |> tosqEvt.Trigger
-//            let mvstr = pos.Mhst.Head.PGN
-//            gm <- gm 
-//                    + (if visw then ""
-//                        else (pos.Mhst.Length / 2 + 1).ToString() + ". ") 
-//                    + mvstr + " "
-//            if mvstr.EndsWith("#") then 
-//                ghdr <- { ghdr with Result = if visw then Bwin else Wwin }
-            (gm, ghdr) |> gmchngEvt.Trigger
-            if pstt.Mvs.Head.Mpgn.EndsWith("#") then 
+        if misw = visw then 
+            let fmv = pstt.Pos.GetMv mv
+            pstt.Pos.DoMv fmv
+            pstt.Pos <- pstt.Pos
+            [ fmv.Mto ] |> tosqEvt.Trigger
+            let mvs = pstt.Mvs@[fmv]
+            pstt.Mvs <- mvs
+            x.Gm <- {x.Gm with Moves = mvs} 
+            x.Gm |> gmchngEvt.Trigger
+            if fmv.Mpgn.EndsWith("#") then 
                 fendEvt.Trigger()
                 false
             else 
@@ -599,33 +617,34 @@ and GameState(sst:SharedState) =
                 if uopn then 
                     let curv = vstt.CurVarn
                     let mvl = Varn.findnmvs pstt.Mvs curv.Brchs
-                    if mvl.Length > 0 then 
-                        //pstt.SetPos(Posn.DoMove(mvl.Head, pos))
-//                        gm <- gm 
-//                                + (if not visw then ""
-//                                    else (pos.Mhst.Length / 2 + 1).ToString() + ". ") 
-//                                + pos.Mhst.Head.PGN + " "
-                        (gm, ghdr) |> gmchngEvt.Trigger
-                        //remove promotion as FICS defaults to Q unless you send "promote n"
-                        //see http://www.freechess.org/Help/HelpFiles/promote.html
-//                        x.FicsSend(mvl.Head.UCI.Substring(0, 4))
+                    if mvl.Length > 0 then
+                        pstt.Pos.DoMv(mvl.Head)
+                        pstt.Pos <- pstt.Pos
+                        let mvs = x.Gm.Moves @ [ mvl.Head ]
+                        pstt.Mvs <- mvs
+                        x.Gm <- { x.Gm with Moves = mvs }
+                        x.Gm |> gmchngEvt.Trigger
+                //remove promotion as FICS defaults to Q unless you send "promote n"
+                //see http://www.freechess.org/Help/HelpFiles/promote.html
+                        x.FicsSend(mvl.Head.UCI.Substring(0, 4))
                 true
         else true
+    
     member x.SeekFics() = 
         let mode = sst.Mode
         match mode with
         | DoFics -> 
             let opts = Opts.load()
             
-            let rec processBuffer(buffer : string) = 
+            let rec processBuffer (buffer : string) = 
                 let buf = buffer.Trim([| char ("\000") |]).Trim()
-                if buf.Contains("Creating: pjbbwfc") then x.DoFicsW(opts,buf)
-                elif buf.Contains("Creating: ") then x.DoFicsB(opts,buf)
+                if buf.Contains("Creating: pjbbwfc") then x.DoFicsW(opts, buf)
+                elif buf.Contains("Creating: ") then x.DoFicsB(opts, buf)
                 elif buf.Contains("{Game") then x.DoFicsEnd(buf)
-                elif buf.Contains("<12>") then x.DoFicsMove(opts,buf)
+                elif buf.Contains("<12>") then x.DoFicsMove(opts, buf)
                 else true
             
-            and onReceiveData(ar : IAsyncResult) = 
+            and onReceiveData (ar : IAsyncResult) = 
                 _socket <- ar.AsyncState :?> Socket
                 if (_socket <> null && _socket.Connected) then 
                     try 
@@ -633,38 +652,37 @@ and GameState(sst:SharedState) =
                         if bytesReceived > 0 then 
                             let buffer = Encoding.ASCII.GetString(_inBuffer, 0, 1024)
                             buffer |> fmsgEvt.Trigger
-                            let cont = processBuffer(buffer)
+                            let cont = processBuffer (buffer)
                             _inBuffer <- null
-                            if cont then setupReceiveCallback(_socket)
-                        else setupReceiveCallback(_socket)
+                            if cont then setupReceiveCallback (_socket)
+                        else setupReceiveCallback (_socket)
                     with
                     | :? SocketException as ex -> 
-                        MessageBox.Show("Error Receiving Data: " + ex.ToString())|> ignore
+                        MessageBox.Show("Error Receiving Data: " + ex.ToString()) |> ignore
                         if _socket <> null then _socket.Close()
-                    | ex -> 
-                        MessageBox.Show(ex.Message, "Error processing receive buffer!")|> ignore
+                    | ex -> MessageBox.Show(ex.Message, "Error processing receive buffer!") |> ignore
             
-            and setupReceiveCallback(sock : Socket) = 
+            and setupReceiveCallback (sock : Socket) = 
                 try 
                     let receiveData = new AsyncCallback(onReceiveData)
                     _inBuffer <- Array.zeroCreate 1024
-                    sock.BeginReceive(_inBuffer, 0, 1024, SocketFlags.None, receiveData, sock)|> ignore
-                with ex -> 
-                    MessageBox.Show("Setup receive callback failed: " + ex.ToString())|> ignore
+                    sock.BeginReceive(_inBuffer, 0, 1024, SocketFlags.None, receiveData, sock) |> ignore
+                with ex -> MessageBox.Show("Setup receive callback failed: " + ex.ToString()) |> ignore
             
             try 
                 if _socket.Connected then 
                     x.FicsSend("seek " + opts.Ftime.ToString())
-                    setupReceiveCallback(_socket)
-                else 
-                    MessageBox.Show("Unable to connect to remote host.")|> ignore
+                    setupReceiveCallback (_socket)
+                else MessageBox.Show("Unable to connect to remote host.") |> ignore
             with ex -> MessageBox.Show(ex.Message, "Connection Error") |> ignore
         | _ -> ()
+    
     member x.StartFics() = 
         let doseek = ref true
         sst.SetMode(DoFics)
         let opts = Opts.load()
-        let rec processBuffer(buffer : string) = 
+        
+        let rec processBuffer (buffer : string) = 
             let buf = buffer.Trim([| char ("\000") |]).Trim()
             if buf.EndsWith("login:") then 
                 x.FicsSend(opts.Funame)
@@ -673,7 +691,8 @@ and GameState(sst:SharedState) =
                 x.FicsSend(opts.Fpass)
                 false
             else true
-        and onReceiveData(ar : IAsyncResult) = 
+        
+        and onReceiveData (ar : IAsyncResult) = 
             _socket <- ar.AsyncState :?> Socket
             if (_socket <> null && _socket.Connected) then 
                 try 
@@ -681,78 +700,77 @@ and GameState(sst:SharedState) =
                     if bytesReceived > 0 then 
                         let buffer = Encoding.ASCII.GetString(_inBuffer, 0, 1024)
                         buffer |> fmsgEvt.Trigger
-                        let cont = processBuffer(buffer)
+                        let cont = processBuffer (buffer)
                         _inBuffer <- null
-                        if cont then setupReceiveCallback(_socket)
-                    else setupReceiveCallback(_socket)
+                        if cont then setupReceiveCallback (_socket)
+                    else setupReceiveCallback (_socket)
                 with
                 | :? SocketException as ex -> 
-                    MessageBox.Show("Error Receiving Data: " + ex.ToString())|> ignore
+                    MessageBox.Show("Error Receiving Data: " + ex.ToString()) |> ignore
                     if _socket <> null then _socket.Close()
-                | ex -> 
-                    MessageBox.Show(ex.Message, "Error processing receive buffer!")|> ignore
-        and setupReceiveCallback(sock : Socket) = 
+                | ex -> MessageBox.Show(ex.Message, "Error processing receive buffer!") |> ignore
+        
+        and setupReceiveCallback (sock : Socket) = 
             try 
                 let receiveData = new AsyncCallback(onReceiveData)
                 _inBuffer <- Array.zeroCreate 1024
-                sock.BeginReceive(_inBuffer, 0, 1024, SocketFlags.None, receiveData, sock) 
-                |> ignore
-            with ex -> 
-                MessageBox.Show("Setup receive callback failed: " + ex.ToString())|> ignore
+                sock.BeginReceive(_inBuffer, 0, 1024, SocketFlags.None, receiveData, sock) |> ignore
+            with ex -> MessageBox.Show("Setup receive callback failed: " + ex.ToString()) |> ignore
         
         //OnConnect
-        let onConnect(ar : IAsyncResult) = 
+        let onConnect (ar : IAsyncResult) = 
             _socket <- ar.AsyncState :?> Socket
             try 
                 _socket.EndConnect(ar)
-                if _socket.Connected then setupReceiveCallback(_socket)
+                if _socket.Connected then setupReceiveCallback (_socket)
                 else MessageBox.Show("Unable to connect to remote host.") |> ignore
             with ex -> MessageBox.Show(ex.Message, "Connection Error") |> ignore
+        
         _socket <- new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp)
         try 
             _socket.Blocking <- false
             let onconnect = new AsyncCallback(onConnect)
-            _socket.BeginConnect("freechess.org", 5000, onconnect, _socket)|> ignore
+            _socket.BeginConnect("freechess.org", 5000, onconnect, _socket) |> ignore
         with
         | :? SocketException as ex -> 
-            MessageBox.Show("Socket error " + ex.ErrorCode.ToString() + " on BeginConnect")|> ignore
-        | ex -> 
-            MessageBox.Show("Unable to initiate connection: " + ex.ToString())|> ignore
+            MessageBox.Show("Socket error " + ex.ErrorCode.ToString() + " on BeginConnect") |> ignore
+        | ex -> MessageBox.Show("Unable to initiate connection: " + ex.ToString()) |> ignore
+    
     member x.SavePGN() = 
-        let pstt = sst.Pstt
         let mode = sst.Mode
         match mode with
-//        | DoPlay -> Game.updPGN pos (ghdr : Gmhdr) "EngGames.pgn"
-//        | DoFics -> Game.updPGN pos (ghdr : Gmhdr) "FicsGames.pgn"
+        | DoPlay -> Game.updPGN x.Gm "EngGames.pgn"
+        | DoFics -> Game.updPGN x.Gm "FicsGames.pgn"
         | _ -> ()
+    
     member x.OpenPGN(nm) = 
-//        pgngms <- Posn.loadPGN nm
+        let opts = Opts.load()
+        let pgnfil = Path.Combine(opts.Gmfol, nm)
+        pgngms <- PGN.ReadFromFile pgnfil
         sst.SetMode(DoDb)
         pgngms |> dbldEvt.Trigger
+    
     member x.LoadPgnGame(rw) = 
         let pstt = sst.Pstt
-        //TODO
-//        if pgngms.Length > 0 then pstt.SetPos(Posn.pgn2pos pgngms.[rw - 1])
-//        gm <- Posn.psn2pgn pos
-        (gm, pgngms.[rw - 1]) |> dbgmldEvt.Trigger
-//        pgnmvs <- pos.Mhst
-//                  |> List.rev
-//                  |> List.toArray
+        x.Gm <- pgngms.[rw-1]
+        (x.Gm, pgngms.[rw - 1]) |> dbgmldEvt.Trigger
+        pstt.Pos <- Pos.FromMoves x.Gm.Moves
+        pstt.Mvs <- x.Gm.Moves
     member x.GetPgnPos(off) = 
         let pstt = sst.Pstt
         let cnum = pstt.Mvs.Length - 1
-        ()
-//        let p = 
-//            if off = 0 then Posn.st
-//            elif off = 1 then 
-//                Posn.DoMoves(pgnmvs.[0..(min (cnum + 1) (pgnmvs.Length - 1))]|> List.ofArray, Posn.st)
-//            elif off = -1 then 
-//                if cnum > 0 then 
-//                    Posn.DoMoves(pgnmvs.[0..cnum - 1] |> List.ofArray, Posn.st)
-//                else Posn.st
-//            else Posn.DoMoves(pgnmvs |> List.ofArray, Posn.st)
-//        pstt.SetPos(p)
-    member x.TrigGmChng(gc) = gc|>gmchngEvt.Trigger
+        let mvs = 
+            if off = 0 then []
+            elif off = 1 then 
+                x.Gm.Moves.[0..(min (cnum + 1) (x.Gm.Moves.Length - 1))]
+            elif off = -1 then 
+                if cnum > 0 then 
+                    x.Gm.Moves.[0..cnum - 1]
+                else []
+            else x.Gm.Moves
+        pstt.Mvs <- mvs
+        pstt.Pos <- Pos.FromMoves mvs
+    member x.TrigGmChng(gc) = gc |> gmchngEvt.Trigger
 
 and SharedState() as x = 
     let mutable mode = DoVarn
@@ -777,9 +795,11 @@ and SharedState() as x =
     member x.Astt = astt
     member x.Gstt = gstt
     member x.Mode = mode
-    member x.SetMode(md) =
+    
+    member x.SetMode(md) = 
         mode <- md
         mode |> mchngEvt.Trigger
+    
     member x.DoMode() = 
         match mode with
         | DoVarn -> 
@@ -802,38 +822,29 @@ and SharedState() as x =
             Application.DoEvents()
             System.Threading.Thread.Sleep(1000)
             let cormvto = tstt.Tests.[tstt.Num].Mv.Mto
-            if cormvto = pstt.Mvs.[pstt.Mvs.Length-1].Mto then 
+            if cormvto = pstt.Mvs.[pstt.Mvs.Length - 1].Mto then 
                 tstt.SetTest(tstt.Num, { tstt.Tests.[tstt.Num] with Status = "Passed" })
                 tstt.SetCor(tstt.Cor + 1)
             else tstt.SetTest(tstt.Num, { tstt.Tests.[tstt.Num] with Status = "Failed" })
             (tstt.Num, tstt.Tests.[tstt.Num].Status) |> tstt.TrigRes
         | DoPlay -> 
             //update game and start analysis
-            let visw = vstt.VarIsw
-//            let mvstr = pos.Mhst.Head.PGN
-//            gstt.SetGm(gstt.Gm + (if visw then (pos.Mhst.Length / 2 + 1).ToString() + ". "
-//                        else "") + mvstr + " ")
-//            if mvstr.EndsWith("#") then 
-//                gstt.SetGhdr({ gstt.Ghdr with Result = if visw then Wwin else Bwin })
-            (gstt.Gm, gstt.Ghdr) |> gstt.TrigGmChng
+            gstt.Gm <- {gstt.Gm with Moves=pstt.Mvs}
+            gstt.Gm |> gstt.TrigGmChng
             gstt.AnlPos()
         | DoFics -> 
             //update game and send move
-            let visw = vstt.VarIsw
-//            let mvstr = pos.Mhst.Head.PGN
-//            gstt.SetGm(gstt.Gm + (if visw then (pos.Mhst.Length / 2 + 1).ToString() + ". "
-//                        else "") + mvstr + " ")
-//            if mvstr.EndsWith("#") then 
-//                gstt.SetGhdr({ gstt.Ghdr with Result = if visw then Wwin else Bwin })
-            (gstt.Gm, gstt.Ghdr) |> gstt.TrigGmChng
-            //remove promotion as FICS defaults to Q unless you send "promote n"
-            //see http://www.freechess.org/Help/HelpFiles/promote.html 
-//            gstt.FicsSend(pos.Mhst.Head.UCI.Substring(0, 4))
+            gstt.Gm <- {gstt.Gm with Moves=pstt.Mvs}
+            gstt.Gm |> gstt.TrigGmChng
+        //remove promotion as FICS defaults to Q unless you send "promote n"
+        //see http://www.freechess.org/Help/HelpFiles/promote.html 
+            gstt.FicsSend(pstt.Mvs.[pstt.Mvs.Length-1].UCI.Substring(0, 4))
         | DoDb -> ()
+    
     member x.GetOpts() = Opts.load()
     member x.SaveOpts(opts) = Opts.save (opts)
 
-module State =
+module State = 
     let stt = new SharedState()
     let pstt = stt.Pstt
     let vstt = stt.Vstt

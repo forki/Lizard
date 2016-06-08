@@ -258,7 +258,7 @@ module ControlsPlay =
             new Grid(Dock = DockStyle.Fill, 
                      BorderStyle = BorderStyle.FixedSingle, FixedRows = 1)
         
-        let updgm (gm, ghdr) = 
+        let updgm gm = 
             let upd() = 
                 dg.Rows.Clear()
                 dg.Rows.Insert(0)
@@ -270,9 +270,7 @@ module ControlsPlay =
                 [ "Message" ] |> List.iteri addhdr
                 dg.Columns.[0].Width <- 1000
                 let nl = System.Environment.NewLine
-                ()
-//                gmrt.Text <- "White: " + ghdr.White + " Black: " + ghdr.Black 
-//                             + nl + gm + " " + ghdr.Result.ToString()
+                gmrt.Text <- gm.ToString()
             if (this.InvokeRequired) then 
                 try 
                     this.Invoke(MethodInvoker(upd)) |> ignore
@@ -321,12 +319,9 @@ module ControlsPlay =
             new RichTextBox(Dock = DockStyle.Fill, BackColor = Color.DarkGreen, 
                             ForeColor = Color.White)
         
-        let updgm (gm, ghdr) = 
+        let updgm gm = 
             let upd() = 
-                let nl = System.Environment.NewLine
-                ()
-//                gmrt.Text <- "White: " + ghdr.White + " Black: " + ghdr.Black 
-//                             + nl + gm + " " + ghdr.Result.ToString()
+                gmrt.Text <- gm.ToString()
             if (this.InvokeRequired) then 
                 try 
                     this.Invoke(MethodInvoker(upd)) |> ignore
@@ -508,9 +503,7 @@ module ControlsPlay =
         let updgm (gm, pgngm:Lizard.PGN.Game) = 
             let upd() = 
                 let nl = System.Environment.NewLine
-                gmrt.Text <- "White: " + pgngm.White + " Black: " 
-                             + pgngm.Black + nl + gm + " " 
-                             + pgngm.Result.ToString()
+                gmrt.Text <- gm.ToString()
             if (this.InvokeRequired) then 
                 try 
                     this.Invoke(MethodInvoker(upd)) |> ignore
@@ -537,8 +530,8 @@ module ControlsPlay =
             //events
             dg.Selection.SelectionChanged.Add(selgm)
             //TODO
-//            gstt.DbGameLoad |> Observable.add updgm
-//            gstt.DbLoad |> Observable.add upddg
+            gstt.DbGameLoad |> Observable.add updgm
+            gstt.DbLoad |> Observable.add upddg
             homeb.Click.Add(fun _ -> donav (Home))
             prevb.Click.Add(fun _ -> donav (Prev))
             nextb.Click.Add(fun _ -> donav (Next))

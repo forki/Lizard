@@ -185,14 +185,14 @@ module Dialogs =
                   Rskip = int (dg.[7, 1].Value.ToString())
                   Lnum = int (dg.[8, 1].Value.ToString())
                   Lskip = int (dg.[9, 1].Value.ToString())
-                  Emaxdepth = int (dg.[13, 1].Value.ToString())
-                  Elog = dg.[14, 1].Value.ToString().StartsWith("T")
-                  Gsecpm = int (dg.[17, 1].Value.ToString())
-                  Guseopn = dg.[18, 1].Value.ToString().StartsWith("T")
-                  Funame = dg.[20, 1].Value.ToString()
-                  Fpass = dg.[21, 1].Value.ToString()
-                  Ftime = int (dg.[22, 1].Value.ToString())
-                  Fuopn = dg.[23, 1].Value.ToString().StartsWith("T") }
+                  Emaxdepth = int (dg.[11, 1].Value.ToString())
+                  Elog = dg.[12, 1].Value.ToString().StartsWith("T")
+                  Gsecpm = int (dg.[14, 1].Value.ToString())
+                  Guseopn = dg.[15, 1].Value.ToString().StartsWith("T")
+                  Funame = dg.[17, 1].Value.ToString()
+                  Fpass = dg.[18, 1].Value.ToString()
+                  Ftime = int (dg.[19, 1].Value.ToString())
+                  Fuopn = dg.[20, 1].Value.ToString().StartsWith("T") }
             stt.SaveOpts(opts)
             this.Close()
         

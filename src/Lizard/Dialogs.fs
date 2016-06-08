@@ -111,7 +111,6 @@ module Dialogs =
         | Text
         | Num
         | Bool
-        | Eng
     
     type DlgOpts() as this = 
         inherit Form(Text = "Options", Height = 530, Width = 400, FormBorderStyle = FormBorderStyle.FixedDialog)
@@ -129,7 +128,6 @@ module Dialogs =
             dg.ColumnsCount <- 2
             let numed = new Cells.Editors.NumericUpDown(typedefof<decimal>, 60M, 1m, 1m)
             let txted = new Cells.Editors.TextBox(typedefof<string>)
-            let enged = new Cells.Editors.ComboBox(typedefof<string>, Lizard.Eng.engines(), true)
             let tfed = new Cells.Editors.ComboBox(typedefof<string>, [| "False"; "True" |], true)
             
             let setrw r (prp, vl, typ) = 
@@ -149,10 +147,6 @@ module Dialogs =
                     dg.[r, 0] <- grncl prp
                     dg.[r, 1] <- whtcl vl
                     dg.[r, 1].Editor <- tfed
-                | Eng -> 
-                    dg.[r, 0] <- grncl prp
-                    dg.[r, 1] <- whtcl vl
-                    dg.[r, 1].Editor <- enged
             
             let dat = 
                 [ "Data", "Folders", Head
@@ -166,12 +160,9 @@ module Dialogs =
                   "Linear - Num Lines", opts.Lnum.ToString(), Num
                   "Linear = Skip Moves", opts.Lskip.ToString(), Num
                   "Engine", "Parameters", Head
-                  "Engine", opts.Eng, Eng
-                  "Min Depths", opts.Emindepth.ToString(), Num
                   "Max Depth", opts.Emaxdepth.ToString(), Num
                   "Create Log", opts.Elog.ToString(), Bool
                   "Game", "Parameters", Head
-                  "Engine", opts.Geng, Eng
                   "Seconds per Move", opts.Gsecpm.ToString(), Num
                   "Use Openings", opts.Guseopn.ToString(), Bool
                   "FICS", "Parameters", Head
@@ -194,11 +185,8 @@ module Dialogs =
                   Rskip = int (dg.[7, 1].Value.ToString())
                   Lnum = int (dg.[8, 1].Value.ToString())
                   Lskip = int (dg.[9, 1].Value.ToString())
-                  Eng = dg.[11, 1].Value.ToString()
-                  Emindepth = int (dg.[12, 1].Value.ToString())
                   Emaxdepth = int (dg.[13, 1].Value.ToString())
                   Elog = dg.[14, 1].Value.ToString().StartsWith("T")
-                  Geng = dg.[16, 1].Value.ToString()
                   Gsecpm = int (dg.[17, 1].Value.ToString())
                   Guseopn = dg.[18, 1].Value.ToString().StartsWith("T")
                   Funame = dg.[20, 1].Value.ToString()

@@ -241,13 +241,13 @@ module Test =
             if vn.Isw then 
                 vn.Brchs 
                 |> List.map 
-                       (fun b -> fromLine [] (List.rev b) [] (vn.Name))
+                       (fun b -> fromLine [] b [] (vn.Name))
             else 
                 vn.Brchs 
                 |> List.map 
                        (fun b -> 
-                       fromLine [ (List.rev b).Head ] 
-                           (List.rev b).Tail [] (vn.Name))
+                       fromLine [ b.Head ] 
+                           b.Tail [] (vn.Name))
         
         //select random subset
         let alltestgenl = new System.Collections.Generic.List<TestDet list>(tstlst)

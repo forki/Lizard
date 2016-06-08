@@ -513,7 +513,7 @@ type Pos(isqs : char [], iisw : bool) =
                 else Ref.movsK.[mfrom]
             | _ -> []
     
-    /// Gets Move list give source and target
+    /// Gets Move give source and target
     member x.GetMvFT(mfrom, mto) = 
         let isw p = p.ToString().ToUpper() = p.ToString()
         let pc = x.Sqs.[mfrom]
@@ -540,13 +540,11 @@ type Pos(isqs : char [], iisw : bool) =
                     if pcto = ' ' then mpgn
                     else pc.ToString().ToUpper() + "x" + Ref.sq.[mto]
                 try 
-                    let tst = x.GetMv(mpgn)
-                    { mv with Mpgn = mpgn }
+                    x.GetMv(mpgn)
                 with _ -> 
                     try 
                         let fmpgn = mpgn.Substring(0, 1) + Ref.f.[mfrom] + mpgn.Substring(1)
-                        let tst = x.GetMv(fmpgn)
-                        { mv with Mpgn = fmpgn }
+                        x.GetMv(fmpgn)
                     with _ -> { mv with Mpgn = mpgn.Substring(0, 1) + Ref.r.[mfrom] + mpgn.Substring(1) }
             | 'B' | 'b' | 'Q' | 'q' -> 
                 if pcto = ' ' then mv
@@ -570,3 +568,9 @@ type Pos(isqs : char [], iisw : bool) =
                 elif pcto = ' ' then mv
                 else { mv with Mpgn = pc.ToString().ToUpper() + "x" + Ref.sq.[mto] }
             | _ -> { mv with Mtyp = Invalid }
+
+    /// Gets Move given UCI string
+    member x.GetMvUCI (uci:string) = 
+        let mfrom = Ref.SqDct.[uci.Substring(0,2)]
+        let mto = Ref.SqDct.[uci.Substring(2,2)]
+        x.GetMvFT(mfrom, mto)

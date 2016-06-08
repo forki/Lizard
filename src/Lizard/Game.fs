@@ -35,8 +35,8 @@ module Game =
     let SetUpPrc (prc : System.Diagnostics.Process) eng = 
         let opts = Opts.load()
         prc.StartInfo.CreateNoWindow <- true
-        prc.StartInfo.FileName <- Eng.enginepath opts eng
-        prc.StartInfo.WorkingDirectory <- Eng.efol
+        prc.StartInfo.FileName <- "stockfish.exe"
+        prc.StartInfo.WorkingDirectory <- Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location)
         prc.StartInfo.RedirectStandardOutput <- true
         prc.StartInfo.UseShellExecute <- false
         prc.StartInfo.RedirectStandardInput <- true

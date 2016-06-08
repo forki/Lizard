@@ -81,11 +81,8 @@ module Types =
           Rskip : int
           Lnum : int
           Lskip : int
-          Eng : string
-          Emindepth : int
           Emaxdepth : int
           Elog : bool
-          Geng : string
           Gsecpm : int
           Guseopn : bool
           Funame : string

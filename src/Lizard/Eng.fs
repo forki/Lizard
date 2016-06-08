@@ -18,16 +18,6 @@ module Eng =
     let logfile = Path.Combine(efol, "LogFile.txt")
     let linestor = Path.Combine(efol, "LineStore.json")
     
-    ///engines - gets array of available engines
-    let engines() = 
-        Directory.GetFiles(efol, "*.exe") 
-        |> Array.map Path.GetFileNameWithoutExtension
-    
-    let engineso() = engines() |> Array.map (fun s -> s :> obj)
-    
-    ///enginepath - gets engine from setting with full path
-    let enginepath (opts : Options) eng = Path.Combine(efol, eng)
-    
     ///let loadLineStore - loads dictionary of line analysis results
     let loadLineStore() = 
         if (File.Exists linestor) then 
@@ -99,17 +89,15 @@ module Eng =
     
     ///let str2psn - converts string to a psn
     let str2psn (str : string) = 
-        //TODO
-        []
-//        let strmvsl = str.Split([| ' ' |]) |> List.ofArray
-//        
-//        let rec genpsn (psn : Posn) strl = 
-//            if List.isEmpty strl then psn
-//            else 
-//                let mv = Posn.FndMv(strl.Head, psn)
-//                let opsn = Posn.DoMove(mv.Value, psn)
-//                genpsn opsn strl.Tail
-//        genpsn (Posn.st) strmvsl
+        let strmvsl = str.Split([| ' ' |]) |> List.ofArray
+        
+        let rec genpsn (psn : Pos) strl = 
+            if List.isEmpty strl then psn
+            else 
+                let mv = psn.GetMvUCI(strl.Head)
+                psn.DoMv mv
+                genpsn psn strl.Tail
+        genpsn (Pos.Start()) strmvsl
     
     ///let procbm - processes best move information from answer from engine and stores result
     let procbm (ls : Linstr, ln, mvct, answer : string, scrlins : string list) = 
@@ -125,7 +113,7 @@ module Eng =
         
         let cplines = scrlins |> List.filter (fun l -> l.Contains("cp "))
         let bmlines = scrlins |> List.filter (fun l -> l.Contains("bestmove "))
-        if cplines.Length = 1 && bmlines.Length = 1 then 
+        if cplines.Length >= 1 && bmlines.Length = 1 then 
             let cpline = cplines.Head
             let bmline = bmlines.Head
             if answer.Length > 3 then 
@@ -135,20 +123,13 @@ module Eng =
                 if not (scr = "" || depth = "") && resp.Length > 3 then 
                     let strmvs = str2str (ln, mvct)
                     let psn = str2psn strmvs
-                    //TODO
-                    let bmPgn = ""
-                    let rmPgn = ""
-//                    let bm = Posn.FndMv(answer, psn)
-//                    let psn1 = Posn.DoMove(bm.Value, psn)
-//                    let bmPgn = psn1.Mhst.[0].PGN
-//                    let rm = Posn.FndMv(resp, psn1)
-//                    let psn2 = Posn.DoMove(rm.Value, psn1)
-//                    let rmPgn = psn2.Mhst.[0].PGN
-                    addLineStore 
-                        (ls, strmvs, 
-                         
-                         depth + "," + scr + "," + answer + "," + resp + "," 
-                         + bmPgn + "," + rmPgn)
+                    let bm = psn.GetMvUCI answer
+                    psn.DoMv bm
+                    let bmPgn = bm.Mpgn
+                    let rm = psn.GetMvUCI resp
+                    psn.DoMv rm
+                    let rmPgn = rm.Mpgn
+                    addLineStore (ls, strmvs, depth + "," + scr + "," + answer + "," + resp + "," + bmPgn + "," + rmPgn)
     
     //general engine analysis for a variation
     let rec getbms (bms : Engbm list) (len, bw, num, cpsn) (mvl : Move list) (str : string) (ls : Linstr) = 
@@ -172,8 +153,7 @@ module Eng =
             let bscr = anl.Scr
             //TODO
             //let opsn = Posn.DoMove(mvl.Head, cpsn)
-            if anl.Bestmv = curmv || anl.Bestmv = "" then 
-                getbms bms (nlen, nbw, nnum, []) mvl.Tail str ls
+            if anl.Bestmv = curmv || anl.Bestmv = "" then getbms bms (nlen, nbw, nnum, []) mvl.Tail str ls
             else 
                 getbms ({ Bnum = num
                           Bisw = 
@@ -181,12 +161,12 @@ module Eng =
                                else false)
                           BPGN = bmPgn
                           Bstr = (bw + num.ToString() + "-" + bmPgn)
-                          Bscr = bscr } :: bms) (nlen, nbw, nnum, []) mvl.Tail str 
-                    ls
+                          Bscr = bscr }
+                        :: bms) (nlen, nbw, nnum, []) mvl.Tail str ls
     
     let strmvl2bms (ls : Linstr) (str : string) (mvl : Move list) = 
-//        let mvl = List.rev vnpsn.Mhst
-//        let opsn = Posn.DoMove(mvl.Head, Posn.st)
+        //        let mvl = List.rev vnpsn.Mhst
+        //        let opsn = Posn.DoMove(mvl.Head, Posn.st)
         let lbms = getbms [] (4, "B", 1, []) mvl.Tail str ls
         lbms |> List.toArray
     
@@ -195,14 +175,14 @@ module Eng =
         let barr = vn.Brchs |> List.toArray
         let selb = barr.[s]
         let sele = ea.[s]
-        //TODO
-//        if not (sele.Bestmv = "" || sele.Resp = "") then 
-//            let bm = Posn.FndMv(sele.Bestmv, selb)
-//            let p1 = Posn.DoMove(bm.Value, selb)
-//            let rm = Posn.FndMv(sele.Resp, p1)
-//            let p2 = Posn.DoMove(rm.Value, p1)
-//            barr.[s] <- p2
-        { vn with Brchs = List.ofArray (barr) }
+        { //TODO
+          //        if not (sele.Bestmv = "" || sele.Resp = "") then 
+          //            let bm = Posn.FndMv(sele.Bestmv, selb)
+          //            let p1 = Posn.DoMove(bm.Value, selb)
+          //            let rm = Posn.FndMv(sele.Resp, p1)
+          //            let p2 = Posn.DoMove(rm.Value, p1)
+          //            barr.[s] <- p2
+          vn with Brchs = List.ofArray (barr) }
     
     /// extall - extends all lines given varn, enganls
     let extall ((vn : Varn), (ea : Enganl [])) = 
@@ -211,15 +191,15 @@ module Eng =
             let selb = barr.[s]
             let sele = ea.[s]
             ()
-            //TODO
-//            if not (sele.Bestmv = "" || sele.Resp = "") then 
-//                let bm = Posn.FndMv(sele.Bestmv, selb)
-//                let p1 = Posn.DoMove(bm.Value, selb)
-//                let rm = Posn.FndMv(sele.Resp, p1)
-//                let p2 = Posn.DoMove(rm.Value, p1)
-//                barr.[s] <- p2
-        { vn with Brchs = List.ofArray (barr) }
-
+        { //TODO
+          //            if not (sele.Bestmv = "" || sele.Resp = "") then 
+          //                let bm = Posn.FndMv(sele.Bestmv, selb)
+          //                let p1 = Posn.DoMove(bm.Value, selb)
+          //                let rm = Posn.FndMv(sele.Resp, p1)
+          //                let p2 = Posn.DoMove(rm.Value, p1)
+          //                barr.[s] <- p2
+          vn with Brchs = List.ofArray (barr) }
+    
     ///get header for curent anal
     let hdr (eng, ln, lnct, mvct, dpth) = 
         let mutable msg = "Analysing using " + eng

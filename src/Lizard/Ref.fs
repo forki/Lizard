@@ -1,13 +1,11 @@
 namespace Lizard
 
-open System.IO
 open System
 
 module Ref = 
     let fs = [ 'a'..'h' ]
-    let private rs = 
-        [ 1..8 ]
-        |> List.rev
+    let private rs = [ 1..8 ] |> List.rev
+    
     ///Dictionary of files
     let fDct = 
         fs
@@ -44,7 +42,7 @@ module Ref =
     let ri = 
         [ for i in 0..63 -> 7 - i / 8 ]
     
-    let GetOrdFR(file, rank) = ((7-rank) <<< 3) ||| file
+    let GetOrdFR(file, rank) = ((7 - rank) <<< 3) ||| file
     
     let ord (l, (n : char)) = 
         let fis = [| 'a'; 'b'; 'c'; 'd'; 'e'; 'f'; 'g'; 'h' |]
@@ -223,69 +221,6 @@ module Ref =
         
         [ for i in 0..63 -> mvs i ]
     
-    let attsPWto = 
-        let al i l = 
-            if r.[i] = "2" || r.[i] = "1" || f.[i] = "h" then l
-            else i - 7 :: l
-        
-        let ar i l = 
-            if r.[i] = "2" || r.[i] = "1" || f.[i] = "a" then l
-            else i - 9 :: l
-        
-        let mvs i = 
-            let movs = ar i []
-            al i movs
-        
-        [ for i in 0..63 -> mvs i ]
-    
-    let attsPBto = 
-        let al i l = 
-            if r.[i] = "8" || r.[i] = "7" || f.[i] = "h" then l
-            else i + 9 :: l
-        
-        let ar i l = 
-            if r.[i] = "8" || r.[i] = "7" || f.[i] = "a" then l
-            else i + 7 :: l
-        
-        let mvs i = 
-            let movs = ar i []
-            al i movs
-        
-        [ for i in 0..63 -> mvs i ]
-    
-    let movsPWto = 
-        let am i l = 
-            if r.[i] = "2" || r.[i] = "1" then l
-            else i - 8 :: l
-        
-        let a2 i l = 
-            if r.[i] <> "4" then l
-            else i - 16 :: l
-        
-        let mvs i = 
-            let movs = am i []
-            a2 i movs
-        
-        [ for i in 0..63 -> mvs i ]
-    
-    let movsPBto = 
-        let am i l = 
-            if r.[i] = "8" || r.[i] = "8" then l
-            else i + 8 :: l
-        
-        let a2 i l = 
-            if r.[i] <> "5" then l
-            else i + 16 :: l
-        
-        let mvs i = 
-            let movs = am i []
-            a2 i movs
-        
-        [ for i in 0..63 -> mvs i ]
-    
-    let promPW = r |> List.map (fun r -> r = "7")
-    let promPB = r |> List.map (fun r -> r = "2")
-    
     let movPW = 
         r |> List.mapi (fun i r -> 
                  if r <> "1" && r <> "8" then i - 8
@@ -306,50 +241,16 @@ module Ref =
                  if r = "7" then i + 16
                  else -1)
     
-    let movsPW =
-        let getmvs i mv =
-            let mvs = mv::attsPW.[i]
-            if movPW2.[i]<> -1 then movPW2.[i]::mvs else mvs
-        movPW|>List.mapi getmvs 
-
-    let movsPB =
-        let getmvs i mv =
-            let mvs = mv::attsPB.[i]
-            if movPB2.[i]<> -1 then movPB2.[i]::mvs else mvs
-        movPB|>List.mapi getmvs 
-
-    let epPWl = r |> List.mapi (fun i r -> f.[i] <> "a" && r = "5")
-    let epPBl = r |> List.mapi (fun i r -> f.[i] <> "a" && r = "4")
-    let epPWr = r |> List.mapi (fun i r -> f.[i] <> "h" && r = "5")
-    let epPBr = r |> List.mapi (fun i r -> f.[i] <> "h" && r = "4")
+    let movsPW = 
+        let getmvs i mv = 
+            let mvs = mv :: attsPW.[i]
+            if movPW2.[i] <> -1 then movPW2.[i] :: mvs
+            else mvs
+        movPW |> List.mapi getmvs
     
-    let epPlpc = 
-        r |> List.mapi (fun i r -> 
-                 if f.[i] <> "a" && (r = "5" || r = "4") then i - 1
-                 else -1)
-    
-    let epPrpc = 
-        r |> List.mapi (fun i r -> 
-                 if f.[i] <> "h" && (r = "5" || r = "4") then i + 1
-                 else -1)
-    
-    let epPWlto = 
-        r |> List.mapi (fun i r -> 
-                 if f.[i] <> "a" && r = "5" then i + 7
-                 else -1)
-    
-    let epPBlto = 
-        r |> List.mapi (fun i r -> 
-                 if f.[i] <> "a" && r = "4" then i - 9
-                 else -1)
-    
-    let epPWrto = 
-        r |> List.mapi (fun i r -> 
-                 if f.[i] <> "h" && r = "5" then i + 9
-                 else -1)
-    
-    let epPBrto = 
-        r |> List.mapi (fun i r -> 
-                 if f.[i] <> "h" && r = "4" then i - 7
-                 else -1)
-    
+    let movsPB = 
+        let getmvs i mv = 
+            let mvs = mv :: attsPB.[i]
+            if movPB2.[i] <> -1 then movPB2.[i] :: mvs
+            else mvs
+        movPB |> List.mapi getmvs

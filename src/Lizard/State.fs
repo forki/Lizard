@@ -48,17 +48,18 @@ type PosnState(sst:SharedState) =
         and set (value) = 
             mvs <- value
             mvs |> mchngEvt.Trigger
+    member x.MvsStr = x.Mvs|>List.map(fun (m:Move) -> m.UCI)|>List.reduce(fun a b -> a + " " + b)
     member x.PsSqs
         with get () = pssqs
         and set (value) = 
             pssqs <- value
             pssqs |> pssqsEvt.Trigger
     member x.SetCanl() =
-        canl <- pos.ToString()
+        canl <- x.MvsStr
                 |> Eng.getanl (Eng.loadLineStore())
         canl |> bmchngEvt.Trigger
     member x.SetCfdt() =
-        cfdt <- pos.ToString()
+        cfdt <- x.MvsStr
                 |> FcsDt.getfdb (FcsDt.loadFicsDbStore())
         cfdt |> fdtchngEvt.Trigger
     member x.Move(mfrom, mto) = 
@@ -331,7 +332,7 @@ and AnalState(sst:SharedState) =
         let vn = Varn.loadtxta (nm, isw)
         let linestore = Eng.loadLineStore()
         let opts = Opts.load()
-        let eng = opts.Eng
+        let eng = "stockfish.exe"
         //p_out
         let pOut (e : System.Diagnostics.DataReceivedEventArgs) = 
             if not (e.Data = null || e.Data = "") then 
@@ -356,7 +357,7 @@ and AnalState(sst:SharedState) =
         let mvs = ln.Split(' ')
         lnct <- 0
         mvct <- min (mvs.Length - 1) 5
-        dpth <- opts.Emindepth
+        dpth <- 10
         // call calcs
         if (Eng.alreadyDone (linestore, Eng.str2str (ln, mvct), dpth)) then 
             getAnswer(false, "") linestore vn (opts, eng, nm)
@@ -375,7 +376,7 @@ and AnalState(sst:SharedState) =
     member x.AnlpStart() = 
         procp <- new System.Diagnostics.Process()
         let opts = Opts.load()
-        let eng = opts.Eng
+        let eng = "stockfish.exe"
         let send msg = Game.Send(msg, procp)
         
         //p_out
@@ -389,10 +390,10 @@ and AnalState(sst:SharedState) =
         // call calcs
         // need to send game position moves as UCI
         let pstt = sst.Pstt
-        //Game.ComputeAnswer(Posn.psn2str pos, 99, procp)
+        Game.ComputeAnswer(pstt.MvsStr, 99, procp)
         isanl <- true
         isanl |> apchngEvt.Trigger
-        //(eng + " - " + (Posn.psn2str pos)) |> ahpchngEvt.Trigger
+        (eng + " - " + (pstt.MvsStr)) |> ahpchngEvt.Trigger
     
     member x.AnlpStop() = 
         if procp <> null then procp.Kill()
@@ -467,7 +468,7 @@ and GameState(sst:SharedState) =
     member x.AnlPos() = 
         let prc = new System.Diagnostics.Process()
         let opts = Opts.load()
-        let eng = opts.Geng
+        let eng = "stockfish.exe"
         let sec = opts.Gsecpm
         let uopn = opts.Guseopn
         let send msg = Game.Send(msg, prc)
@@ -801,10 +802,10 @@ and SharedState() as x =
             Application.DoEvents()
             System.Threading.Thread.Sleep(1000)
             let cormvto = tstt.Tests.[tstt.Num].Mv.Mto
-//            if cormvto = pos.Mhst.Head.To then 
-//                tstt.SetTest(tstt.Num, { tstt.Tests.[tstt.Num] with Status = "Passed" })
-//                tstt.SetCor(tstt.Cor + 1)
-//            else tstt.SetTest(tstt.Num, { tstt.Tests.[tstt.Num] with Status = "Failed" })
+            if cormvto = pstt.Mvs.[pstt.Mvs.Length-1].Mto then 
+                tstt.SetTest(tstt.Num, { tstt.Tests.[tstt.Num] with Status = "Passed" })
+                tstt.SetCor(tstt.Cor + 1)
+            else tstt.SetTest(tstt.Num, { tstt.Tests.[tstt.Num] with Status = "Failed" })
             (tstt.Num, tstt.Tests.[tstt.Num].Status) |> tstt.TrigRes
         | DoPlay -> 
             //update game and start analysis

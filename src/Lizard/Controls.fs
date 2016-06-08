@@ -306,7 +306,7 @@ module Controls =
                 let c = pstt.Pos.Sqs.[sqFrom]
                 cCur <- getcur c
                 sqpnl.Cursor <- cCur
-                if (p.DoDragDrop(oimg, DragDropEffects.Move) = DragDropEffects.Move) then 
+                if pstt.PsSqs.Length>0 && (p.DoDragDrop(oimg, DragDropEffects.Move) = DragDropEffects.Move) then 
                     pstt.Move(sqFrom, sqTo)
                 else p.Image <- oimg
                 sqpnl.Cursor <- Cursors.Default

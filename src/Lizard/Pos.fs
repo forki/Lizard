@@ -1,4 +1,5 @@
 ﻿namespace Lizard
+
 open System
 open System.Text
 open System.Text.RegularExpressions
@@ -48,10 +49,10 @@ type Pos(isqs : char [], iisw : bool) =
     
     /// Gets initial Pos
     static member Start() = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w" |> Pos.FromString
-
+    
     /// loads Pos given a Move list
     static member FromMoves(imvl : Move list) = 
-        let rec domvs mvl (pos:Pos) =
+        let rec domvs mvl (pos : Pos) = 
             if List.isEmpty mvl then pos
             else 
                 pos.DoMv mvl.Head
@@ -96,7 +97,7 @@ type Pos(isqs : char [], iisw : bool) =
         match mv.Mtyp with
         | Prom(c) -> 
             x.Sqs.[mv.Mto] <- if x.IsW then c |> Char.ToLower
-                                else c
+                              else c
         | CasK -> 
             x.Sqs.[mv.Mto - 1] <- x.Sqs.[mv.Mto + 1]
             x.Sqs.[mv.Mto + 1] <- ' '
@@ -106,7 +107,7 @@ type Pos(isqs : char [], iisw : bool) =
         | Ep -> 
             if x.IsW then x.Sqs.[mv.Mto - 8] <- ' '
             else x.Sqs.[mv.Mto + 8] <- ' '
-        |_ -> ()
+        | _ -> ()
     
     /// Gets Move from string
     member x.GetMv mv = 
@@ -186,69 +187,69 @@ type Pos(isqs : char [], iisw : bool) =
                           Mto = mto
                           Mtyp = Standard
                           Mpgn = mv }
-                    //filter out moves that lead to check
-                    else 
-                        let isok m = 
-                            let np = x.Copy()
-                            
-                            let mov = 
-                                { Mfrom = m
-                                  Mto = mto
-                                  Mtyp = Standard
-                                  Mpgn = mv }
-                            np.DoMv mov
-                            let kc = 
-                                if x.IsW then 'K'
-                                else 'k'
-                            
-                            let kia = 
-                                np.Sqs
-                                |> Array.mapi (fun i c -> i, c)
-                                |> Array.filter (fun (_, c) -> c = kc)
-                                |> Array.map fst
-                            
-                            let ki = kia.[0]
-                            
-                            let qc = 
-                                if x.IsW then 'q'
-                                else 'Q'
-                            
-                            let rec chkd stop a rbc i = 
-                                if stop i then false
-                                else 
-                                    let j = i + a
-                                    let pc = np.Sqs.[j]
-                                    if pc = qc || pc = rbc then true
-                                    elif pc = ' ' || pc = kc then chkd stop a rbc j
-                                    else false
-                            
-                            let rc = 
-                                if x.IsW then 'r'
-                                else 'R'
-                            
-                            let bc = 
-                                if x.IsW then 'b'
-                                else 'B'
-                            
-                            let chkn = chkd (fun i -> i / 8 = 0) -8 rc
-                            let chke = chkd (fun i -> i % 8 = 7) 1 rc
-                            let chks = chkd (fun i -> i / 8 = 7) 8 rc
-                            let chkw = chkd (fun i -> i % 8 = 0) -1 rc
-                            let chkne = chkd (fun i -> i / 8 = 0 || i % 8 = 7) -7 bc
-                            let chkse = chkd (fun i -> i / 8 = 7 || i % 8 = 7) 9 bc
-                            let chksw = chkd (fun i -> i / 8 = 7 || i % 8 = 0) 7 bc
-                            let chknw = chkd (fun i -> i / 8 = 0 || i % 8 = 0) -9 bc
-                            let inchk = 
-                                chkn ki || chke ki || chks ki || chkw ki || chkne ki || chkse ki || chksw ki || chknw ki
-                            not inchk
-                        
-                        let nms = ms |> Array.filter isok
-                        if nms.Length = 1 then 
-                            { Mfrom = nms.[0]
-                              Mto = mto
-                              Mtyp = Standard
-                              Mpgn = mv }
-                        else fl()
+                    else fl()
+                //filter out moves that lead to check
+                //                        let isok m = 
+                //                            let np = x.Copy()
+                //                            
+                //                            let mov = 
+                //                                { Mfrom = m
+                //                                  Mto = mto
+                //                                  Mtyp = Standard
+                //                                  Mpgn = mv }
+                //                            np.DoMv mov
+                //                            let kc = 
+                //                                if x.IsW then 'K'
+                //                                else 'k'
+                //                            
+                //                            let kia = 
+                //                                np.Sqs
+                //                                |> Array.mapi (fun i c -> i, c)
+                //                                |> Array.filter (fun (_, c) -> c = kc)
+                //                                |> Array.map fst
+                //                            
+                //                            let ki = kia.[0]
+                //                            
+                //                            let qc = 
+                //                                if x.IsW then 'q'
+                //                                else 'Q'
+                //                            
+                //                            let rec chkd stop a rbc i = 
+                //                                if stop i then false
+                //                                else 
+                //                                    let j = i + a
+                //                                    let pc = np.Sqs.[j]
+                //                                    if pc = qc || pc = rbc then true
+                //                                    elif pc = ' ' || pc = kc then chkd stop a rbc j
+                //                                    else false
+                //                            
+                //                            let rc = 
+                //                                if x.IsW then 'r'
+                //                                else 'R'
+                //                            
+                //                            let bc = 
+                //                                if x.IsW then 'b'
+                //                                else 'B'
+                //                            
+                //                            let chkn = chkd (fun i -> i / 8 = 0) -8 rc
+                //                            let chke = chkd (fun i -> i % 8 = 7) 1 rc
+                //                            let chks = chkd (fun i -> i / 8 = 7) 8 rc
+                //                            let chkw = chkd (fun i -> i % 8 = 0) -1 rc
+                //                            let chkne = chkd (fun i -> i / 8 = 0 || i % 8 = 7) -7 bc
+                //                            let chkse = chkd (fun i -> i / 8 = 7 || i % 8 = 7) 9 bc
+                //                            let chksw = chkd (fun i -> i / 8 = 7 || i % 8 = 0) 7 bc
+                //                            let chknw = chkd (fun i -> i / 8 = 0 || i % 8 = 0) -9 bc
+                //                            let inchk = 
+                //                                chkn ki || chke ki || chks ki || chkw ki || chkne ki || chkse ki || chksw ki || chknw ki
+                //                            not inchk
+                //                        
+                //                        let nms = ms |> Array.filter isok
+                //                        if nms.Length = 1 then 
+                //                            { Mfrom = nms.[0]
+                //                              Mto = mto
+                //                              Mtyp = Standard
+                //                              Mpgn = mv }
+                //                        else fl()
                 | 'B' | 'b' -> 
                     let fmfs = mfs |> Array.filter (samedg mto)
                     if fmfs.Length = 1 then 
@@ -311,33 +312,36 @@ type Pos(isqs : char [], iisw : bool) =
                           Mtyp = Standard
                           Mpgn = mv }
                     else 
-                        let rec getval fl = 
-                            if List.isEmpty fl then 
-                                failwith ("can't find valid move, mv: " + mv + " pos: " + x.ToString())
+                        let rec getvals ol fl = 
+                            if List.isEmpty fl then ol
                             else 
                                 let f = fl.Head
                                 if samer mto f then 
                                     let betw = 
                                         if mto < f then x.Sqs.[mto + 1..f - 1]
                                         else x.Sqs.[f + 1..mto - 1]
-                                    if (betw |> Array.filter (fun c -> c <> ' ')).Length = 0 then f
-                                    else getval fl.Tail
+                                    if (betw |> Array.filter (fun c -> c <> ' ')).Length = 0 then 
+                                        getvals (f :: ol) fl.Tail
+                                    else getvals ol fl.Tail
                                 else 
                                     let betw = 
                                         if mto < f then [ mto + 8..8..f - 8 ] |> List.map (fun i -> x.Sqs.[i])
                                         else [ f + 8..8..mto - 8 ] |> List.map (fun i -> x.Sqs.[i])
-                                    if (betw |> List.filter (fun c -> c <> ' ')).Length = 0 then f
-                                    else getval fl.Tail
+                                    if (betw |> List.filter (fun c -> c <> ' ')).Length = 0 then 
+                                        getvals (f :: ol) fl.Tail
+                                    else getvals ol fl.Tail
                         
-                        let mfrom = 
+                        let mfroms = 
                             fmfs
                             |> List.ofArray
-                            |> getval
+                            |> getvals []
                         
-                        { Mfrom = mfrom
-                          Mto = mto
-                          Mtyp = Standard
-                          Mpgn = mv }
+                        if mfroms.Length <> 1 then fl()
+                        else 
+                            { Mfrom = mfroms.[0]
+                              Mto = mto
+                              Mtyp = Standard
+                              Mpgn = mv }
                 | _ -> fl()
         | Castle(c) -> 
             if c = 'K' && x.IsW then 
@@ -490,41 +494,79 @@ type Pos(isqs : char [], iisw : bool) =
     
     /// Gets Move list give source and target
     member internal x.GetPossSqs(mfrom) = 
+        let isw p = p.ToString().ToUpper() = p.ToString()
         let pc = x.Sqs.[mfrom]
-        match pc with
-        |'P' -> Ref.movsPW.[mfrom]
-        |'p' -> Ref.movsPB.[mfrom]
-        |'N' -> Ref.movsN.[mfrom]
-        |'n' -> Ref.movsN.[mfrom]
-        |'B' -> Ref.raysB.[mfrom]|>List.concat
-        |'b' -> Ref.raysB.[mfrom]|>List.concat
-        |'R' -> Ref.raysR.[mfrom]|>List.concat
-        |'r' -> Ref.raysR.[mfrom]|>List.concat
-        |'Q' -> Ref.raysQ.[mfrom]|>List.concat
-        |'q' -> Ref.raysQ.[mfrom]|>List.concat
-        |'K' -> Ref.movsK.[mfrom]
-        |'k' -> Ref.movsK.[mfrom]
-        |_ -> []
+        if (pc |> isw) <> x.IsW then []
+        else
+            match pc with
+            | 'P' -> Ref.movsPW.[mfrom]
+            | 'p' -> Ref.movsPB.[mfrom]
+            | 'N' | 'n' -> Ref.movsN.[mfrom]
+            | 'B' | 'b' -> Ref.raysB.[mfrom] |> List.concat
+            | 'R' | 'r' -> Ref.raysR.[mfrom] |> List.concat
+            | 'Q' | 'q' -> Ref.raysQ.[mfrom] |> List.concat
+            | 'K' -> 
+                if mfrom = 60 then [ 58; 62 ] @ Ref.movsK.[mfrom]
+                else Ref.movsK.[mfrom]
+            | 'k' -> 
+                if mfrom = 4 then [ 2; 6 ] @ Ref.movsK.[mfrom]
+                else Ref.movsK.[mfrom]
+            | _ -> []
+    
     /// Gets Move list give source and target
-    member x.GetMvFT(mfrom,mto) = 
+    member x.GetMvFT(mfrom, mto) = 
+        let isw p = p.ToString().ToUpper() = p.ToString()
         let pc = x.Sqs.[mfrom]
         let mpgn = pc.ToString().ToUpper() + Ref.sq.[mto]
-        let mv =
+        
+        let mv = 
             { Mfrom = mfrom
               Mto = mto
               Mtyp = Standard
               Mpgn = mpgn }
-        match pc with
-        |'P' -> {mv with Mpgn = Ref.sq.[mto]}
-        |'p' -> {mv with Mpgn = Ref.sq.[mto]}
-        |'N' -> mv
-        |'n' -> mv
-        |'B' -> mv
-        |'b' -> mv
-        |'R' -> mv
-        |'r' -> mv
-        |'Q' -> mv
-        |'q' -> mv
-        |'K' -> mv
-        |'k' -> mv
-        |_ -> {mv with Mtyp = Invalid}
+        
+        let pcto = x.Sqs.[mto]
+        if pcto <> ' ' && (pc |> isw) = (pcto |> isw) then { mv with Mtyp = Invalid }
+        else 
+            match pc with
+            | 'P' | 'p' -> 
+                if Ref.f.[mto] = Ref.f.[mfrom] then { mv with Mpgn = Ref.sq.[mto] }
+                elif pcto <> ' ' then { mv with Mpgn = Ref.f.[mfrom] + "x" + Ref.sq.[mto] }
+                else 
+                    { mv with Mpgn = Ref.f.[mfrom] + "x" + Ref.sq.[mto]
+                              Mtyp = Ep }
+            | 'N' | 'n' | 'R' | 'r' -> 
+                let mpgn = 
+                    if pcto = ' ' then mpgn
+                    else pc.ToString().ToUpper() + "x" + Ref.sq.[mto]
+                try 
+                    let tst = x.GetMv(mpgn)
+                    { mv with Mpgn = mpgn }
+                with _ -> 
+                    try 
+                        let fmpgn = mpgn.Substring(0, 1) + Ref.f.[mfrom] + mpgn.Substring(1)
+                        let tst = x.GetMv(fmpgn)
+                        { mv with Mpgn = fmpgn }
+                    with _ -> { mv with Mpgn = mpgn.Substring(0, 1) + Ref.r.[mfrom] + mpgn.Substring(1) }
+            | 'B' | 'b' | 'Q' | 'q' -> 
+                if pcto = ' ' then mv
+                else { mv with Mpgn = pc.ToString().ToUpper() + "x" + Ref.sq.[mto] }
+            | 'K' -> 
+                if mto = 62 && mfrom = 60 then 
+                    { mv with Mpgn = "O-O"
+                              Mtyp = CasK }
+                elif mto = 58 && mfrom = 60 then 
+                    { mv with Mpgn = "O-O-O"
+                              Mtyp = CasQ }
+                elif pcto = ' ' then mv
+                else { mv with Mpgn = pc.ToString().ToUpper() + "x" + Ref.sq.[mto] }
+            | 'k' -> 
+                if mto = 6 && mfrom = 4 then 
+                    { mv with Mpgn = "O-O"
+                              Mtyp = CasK }
+                elif mto = 2 && mfrom = 4 then 
+                    { mv with Mpgn = "O-O-O"
+                              Mtyp = CasQ }
+                elif pcto = ' ' then mv
+                else { mv with Mpgn = pc.ToString().ToUpper() + "x" + Ref.sq.[mto] }
+            | _ -> { mv with Mtyp = Invalid }

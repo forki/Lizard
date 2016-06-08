@@ -135,18 +135,18 @@ let ``Varn mrgbrch``() =
     let ans = Varn.mrgbrch mvl1 mvll
     let ans2 = Varn.mrgbrch mvl5 mvll
     let ans3 = Varn.mrgbrch mvl6 mvll
-    ans.Length|>should equal 5
+    ans.Length|>should equal 4
     ans2.Length|>should equal 5
-    ans3.Length|>should equal 5
+    ans3.Length|>should equal 4
 
 [<Test>]
 let ``Varn add``() =
     let ans = Varn.add vrn mvl1
     let ans2 = Varn.add vrn mvl5
     let ans3 = Varn.add vrn mvl6
-    ans.Brchs.Length|>should equal 5
+    ans.Brchs.Length|>should equal 4
     ans2.Brchs.Length|>should equal 5
-    ans3.Brchs.Length|>should equal 5
+    ans3.Brchs.Length|>should equal 4
 
 [<Test>]
 let ``Varn del``() =

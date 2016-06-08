@@ -61,6 +61,7 @@
     <Compile Include="FsUnit.fs" />
     <Compile Include="PGN.fs" />
     <Compile Include="Ref.fs" />
+    <Compile Include="Pos.fs" />
     <Compile Include="Opts.fs" />
     <Compile Include="Varn.fs" />
     <None Include="paket.references" />

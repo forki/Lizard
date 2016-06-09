@@ -413,7 +413,7 @@ and AnalState(sst : SharedState) =
         let pOut (e : System.Diagnostics.DataReceivedEventArgs) = 
             if not (e.Data = null || e.Data = "") then 
                 let msg = e.Data.ToString().Trim()
-                msg |> apmsgEvt.Trigger
+                if not (msg.StartsWith("info") && not (msg.Contains(" cp "))) then msg |> apmsgEvt.Trigger
         procp.OutputDataReceived.Add(pOut)
         //Start process
         Game.SetUpPrc procp eng
@@ -470,11 +470,13 @@ and GameState(sst : SharedState) =
         let pstt = sst.Pstt
         let vstt = sst.Vstt
         pstt.Pos <- Pos.Start()
+        pstt.Mvs <- []
         vstt.SetIsw(isw)
         isw |> pstt.TrigOri
         sst.SetMode(DoPlay)
         let opts = Opts.load()
-        x.Gm <- PGN.Game.Blank() |> Game.setghdr (if isw then ("Phil", "StockFish") else ("StockFish", "Phil"))
+        x.Gm <- PGN.Game.Blank() |> Game.setghdr (if isw then ("Phil", "StockFish")
+                                                  else ("StockFish", "Phil"))
         x.Gm |> gmchngEvt.Trigger
         let uopn = opts.Guseopn
         if uopn then vstt.SetVarn(Varn.loada ("<All>", isw))
@@ -549,15 +551,16 @@ and GameState(sst : SharedState) =
         let pstt = sst.Pstt
         let vstt = sst.Vstt
         pstt.Pos <- Pos.Start()
+        pstt.Mvs <- []
         vstt.SetIsw(true)
         true |> pstt.TrigOri
         fsttEvt.Trigger()
         let tmp = buf.ToString()
         let indx = tmp.IndexOf("Creating")
-        let tmp = tmp.Substring(indx+25,20)
+        let tmp = tmp.Substring(indx + 25, 20)
         let indx = tmp.IndexOf("(")
-        let b = tmp.Substring(0,indx-1)
-        x.Gm <- PGN.Game.Blank() |>Game.setghdr ("Phil",b)
+        let b = tmp.Substring(0, indx - 1)
+        x.Gm <- PGN.Game.Blank() |> Game.setghdr ("Phil", b)
         x.Gm |> gmchngEvt.Trigger
         let uopn = opts.Fuopn
         if uopn then vstt.SetVarn(Varn.loada ("<All>", true))
@@ -580,15 +583,16 @@ and GameState(sst : SharedState) =
         let pstt = sst.Pstt
         let vstt = sst.Vstt
         pstt.Pos <- Pos.Start()
+        pstt.Mvs <- []
         vstt.SetIsw(false)
         false |> pstt.TrigOri
         fsttEvt.Trigger()
         let tmp = buf.ToString()
         let indx = tmp.IndexOf("Creating")
-        let tmp = tmp.Substring(indx+10,20)
+        let tmp = tmp.Substring(indx + 10, 20)
         let indx = tmp.IndexOf("(")
-        let w = tmp.Substring(0,indx-1)
-        x.Gm <- PGN.Game.Blank() |>Game.setghdr (w,"Phil")
+        let w = tmp.Substring(0, indx - 1)
+        x.Gm <- PGN.Game.Blank() |> Game.setghdr (w, "Phil")
         x.Gm |> gmchngEvt.Trigger
         let uopn = opts.Fuopn
         if uopn then vstt.SetVarn(Varn.loada ("<All>", false))

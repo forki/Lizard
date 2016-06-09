@@ -124,7 +124,7 @@ module PGN =
             | _ -> x
         
         static member FormatTag name value = "[" + name + " \"" + value + "\"]" + Environment.NewLine
-        static member Blank = 
+        static member Blank() = 
             { Id = -1
               Event = "?"
               Site = "?"
@@ -134,7 +134,7 @@ module PGN =
               Round = "?"
               White = "?"
               Black = "?"
-              Result = Draw
+              Result = NotKnown
               Moves = [] }
     
     let private NextGameRdr(sr : StreamReader) = 
@@ -269,10 +269,10 @@ module PGN =
             else 
                 let nst, ngm = proclin st lin gm
                 if nst = FinishedOK then { ngm with Moves = (ngm.Moves |> List.rev) }
-                elif nst = FinishedInvalid then Game.Blank
+                elif nst = FinishedInvalid then Game.Blank()
                 else getgm nst ngm
         
-        let gm = getgm Unknown Game.Blank
+        let gm = getgm Unknown (Game.Blank())
         if gm.Moves.Length > 0 then gm |> Some
         else None
     

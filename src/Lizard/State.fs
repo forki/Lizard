@@ -432,7 +432,7 @@ and AnalState(sst : SharedState) =
         "Stopped" |> ahpchngEvt.Trigger
 
 and GameState(sst : SharedState) = 
-    let mutable gm = PGN.Game.Blank
+    let mutable gm = PGN.Game.Blank()
     let nl = System.Environment.NewLine
     //Fics
     let mutable _socket : Socket = null
@@ -474,7 +474,7 @@ and GameState(sst : SharedState) =
         isw |> pstt.TrigOri
         sst.SetMode(DoPlay)
         let opts = Opts.load()
-        x.Gm <- PGN.Game.Blank
+        x.Gm <- PGN.Game.Blank() |> Game.setghdr (if isw then ("Phil", "StockFish") else ("StockFish", "Phil"))
         x.Gm |> gmchngEvt.Trigger
         let uopn = opts.Guseopn
         if uopn then vstt.SetVarn(Varn.loada ("<All>", isw))
@@ -552,9 +552,14 @@ and GameState(sst : SharedState) =
         vstt.SetIsw(true)
         true |> pstt.TrigOri
         fsttEvt.Trigger()
-        x.Gm <- PGN.Game.Blank
+        let tmp = buf.ToString()
+        let indx = tmp.IndexOf("Creating")
+        let tmp = tmp.Substring(indx+25,20)
+        let indx = tmp.IndexOf("(")
+        let b = tmp.Substring(0,indx-1)
+        x.Gm <- PGN.Game.Blank() |>Game.setghdr ("Phil",b)
         x.Gm |> gmchngEvt.Trigger
-        let uopn = opts.Guseopn
+        let uopn = opts.Fuopn
         if uopn then vstt.SetVarn(Varn.loada ("<All>", true))
         if uopn then 
             let curv = vstt.CurVarn
@@ -566,8 +571,8 @@ and GameState(sst : SharedState) =
                 pstt.Mvs <- mvs
                 x.Gm <- { x.Gm with Moves = mvs }
                 x.Gm |> gmchngEvt.Trigger
-        //remove promotion as FICS defaults to Q unless you send "promote n"
-        //see http://www.freechess.org/Help/HelpFiles/promote.html
+                //remove promotion as FICS defaults to Q unless you send "promote n"
+                //see http://www.freechess.org/Help/HelpFiles/promote.html
                 x.FicsSend(mvl.Head.UCI.Substring(0, 4))
         true
     
@@ -578,18 +583,23 @@ and GameState(sst : SharedState) =
         vstt.SetIsw(false)
         false |> pstt.TrigOri
         fsttEvt.Trigger()
-        x.Gm <- PGN.Game.Blank
+        let tmp = buf.ToString()
+        let indx = tmp.IndexOf("Creating")
+        let tmp = tmp.Substring(indx+10,20)
+        let indx = tmp.IndexOf("(")
+        let w = tmp.Substring(0,indx-1)
+        x.Gm <- PGN.Game.Blank() |>Game.setghdr (w,"Phil")
         x.Gm |> gmchngEvt.Trigger
-        let uopn = opts.Guseopn
+        let uopn = opts.Fuopn
         if uopn then vstt.SetVarn(Varn.loada ("<All>", false))
         true
     
     member x.DoFicsEnd(buf : string) = 
         result <- buf.Split([| '}' |]).[1].Substring(1, 3)
         x.Gm <- { x.Gm with Result = 
-                            if result = "1-0" then PGN.GameResult.WhiteWins
-                            elif result = "0-1" then PGN.GameResult.BlackWins
-                            else PGN.GameResult.Draw }
+                                if result = "1-0" then PGN.GameResult.WhiteWins
+                                elif result = "0-1" then PGN.GameResult.BlackWins
+                                else PGN.GameResult.Draw }
         x.Gm |> gmchngEvt.Trigger
         fendEvt.Trigger()
         false
@@ -605,27 +615,27 @@ and GameState(sst : SharedState) =
             pstt.Pos.DoMv fmv
             pstt.Pos <- pstt.Pos
             [ fmv.Mto ] |> tosqEvt.Trigger
-            let mvs = pstt.Mvs@[fmv]
+            let mvs = pstt.Mvs @ [ fmv ]
             pstt.Mvs <- mvs
-            x.Gm <- {x.Gm with Moves = mvs} 
+            x.Gm <- { x.Gm with Moves = mvs }
             x.Gm |> gmchngEvt.Trigger
             if fmv.Mpgn.EndsWith("#") then 
                 fendEvt.Trigger()
                 false
             else 
-                let uopn = opts.Guseopn
+                let uopn = opts.Fuopn
                 if uopn then 
                     let curv = vstt.CurVarn
                     let mvl = Varn.findnmvs pstt.Mvs curv.Brchs
-                    if mvl.Length > 0 then
+                    if mvl.Length > 0 then 
                         pstt.Pos.DoMv(mvl.Head)
                         pstt.Pos <- pstt.Pos
                         let mvs = x.Gm.Moves @ [ mvl.Head ]
                         pstt.Mvs <- mvs
                         x.Gm <- { x.Gm with Moves = mvs }
                         x.Gm |> gmchngEvt.Trigger
-                //remove promotion as FICS defaults to Q unless you send "promote n"
-                //see http://www.freechess.org/Help/HelpFiles/promote.html
+                        //remove promotion as FICS defaults to Q unless you send "promote n"
+                        //see http://www.freechess.org/Help/HelpFiles/promote.html
                         x.FicsSend(mvl.Head.UCI.Substring(0, 4))
                 true
         else true
@@ -752,24 +762,25 @@ and GameState(sst : SharedState) =
     
     member x.LoadPgnGame(rw) = 
         let pstt = sst.Pstt
-        x.Gm <- pgngms.[rw-1]
+        x.Gm <- pgngms.[rw - 1]
         (x.Gm, pgngms.[rw - 1]) |> dbgmldEvt.Trigger
         pstt.Pos <- Pos.FromMoves x.Gm.Moves
         pstt.Mvs <- x.Gm.Moves
+    
     member x.GetPgnPos(off) = 
         let pstt = sst.Pstt
         let cnum = pstt.Mvs.Length - 1
+        
         let mvs = 
             if off = 0 then []
-            elif off = 1 then 
-                x.Gm.Moves.[0..(min (cnum + 1) (x.Gm.Moves.Length - 1))]
+            elif off = 1 then x.Gm.Moves.[0..(min (cnum + 1) (x.Gm.Moves.Length - 1))]
             elif off = -1 then 
-                if cnum > 0 then 
-                    x.Gm.Moves.[0..cnum - 1]
+                if cnum > 0 then x.Gm.Moves.[0..cnum - 1]
                 else []
             else x.Gm.Moves
         pstt.Mvs <- mvs
         pstt.Pos <- Pos.FromMoves mvs
+    
     member x.TrigGmChng(gc) = gc |> gmchngEvt.Trigger
 
 and SharedState() as x = 
@@ -829,16 +840,16 @@ and SharedState() as x =
             (tstt.Num, tstt.Tests.[tstt.Num].Status) |> tstt.TrigRes
         | DoPlay -> 
             //update game and start analysis
-            gstt.Gm <- {gstt.Gm with Moves=pstt.Mvs}
+            gstt.Gm <- { gstt.Gm with Moves = pstt.Mvs }
             gstt.Gm |> gstt.TrigGmChng
             gstt.AnlPos()
         | DoFics -> 
             //update game and send move
-            gstt.Gm <- {gstt.Gm with Moves=pstt.Mvs}
+            gstt.Gm <- { gstt.Gm with Moves = pstt.Mvs }
             gstt.Gm |> gstt.TrigGmChng
-        //remove promotion as FICS defaults to Q unless you send "promote n"
-        //see http://www.freechess.org/Help/HelpFiles/promote.html 
-            gstt.FicsSend(pstt.Mvs.[pstt.Mvs.Length-1].UCI.Substring(0, 4))
+            //remove promotion as FICS defaults to Q unless you send "promote n"
+            //see http://www.freechess.org/Help/HelpFiles/promote.html 
+            gstt.FicsSend(pstt.Mvs.[pstt.Mvs.Length - 1].UCI.Substring(0, 4))
         | DoDb -> ()
     
     member x.GetOpts() = Opts.load()

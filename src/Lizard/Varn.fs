@@ -195,7 +195,7 @@ module Varn =
             let nl = Environment.NewLine
             
             let mvl2pgn mvl =
-                let gm = {PGN.Game.Blank with Moves=mvl}
+                let gm = {PGN.Game.Blank() with Moves=mvl}
                 gm.ToString() 
 
             let pstr = 

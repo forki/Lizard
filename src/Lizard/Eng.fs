@@ -204,7 +204,7 @@ module Eng =
     let hdr (eng, ln, lnct, mvct, dpth) = 
         let mutable msg = "Analysing using " + eng
         msg <- msg + " - line " + ln
-        msg <- msg + " - move  " + lnct.ToString()
-        msg <- msg + " of " + mvct.ToString()
+        msg <- msg + " - move  " + mvct.ToString()
+        msg <- msg + " of " + (lnct+1).ToString()
         msg <- msg + " to depth " + dpth.ToString()
         msg

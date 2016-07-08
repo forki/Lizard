@@ -221,6 +221,9 @@ module Controls =
         let sqs : PictureBox [] = Array.zeroCreate 64
         let flbls : Label [] = Array.zeroCreate 8
         let rlbls : Label [] = Array.zeroCreate 8
+        let btnpnl = new Panel(Width = 420, Height = 40, Left = 29, Top = 530)
+        let pbtn = new System.Windows.Forms.Button(Text="Copy PGN",Dock=DockStyle.Left)
+        let fbtn = new System.Windows.Forms.Button(Text="Copy \"FEN\"",Dock=DockStyle.Left)
         
         /// get cursor given char
         let getcur c = 
@@ -393,6 +396,9 @@ module Controls =
             sqpnl |> this.Controls.Add
             bmlbl |> bmpnl.Controls.Add
             bmpnl |> this.Controls.Add
+            pbtn |> btnpnl.Controls.Add
+            fbtn |> btnpnl.Controls.Add
+            btnpnl |> this.Controls.Add
             //events
             pstt.PosChng |> Observable.add setpcs
             pstt.PsSqsChng |> Observable.add highlightsqs
@@ -400,6 +406,8 @@ module Controls =
             pstt.Ornt |> Observable.add orient
             gstt.GameSqTo |> Observable.add highlightsqs
             pstt.BmChng |> Observable.add updbm
+            pbtn.Click.Add(fun _ -> Clipboard.SetText({Lizard.PGN.Game.Blank() with Moves=pstt.Mvs}.ToString()))
+            fbtn.Click.Add(fun _ -> Clipboard.SetText(pstt.Pos.ToString()))
     
     type Nav = 
         | Home

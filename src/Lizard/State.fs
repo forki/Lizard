@@ -145,6 +145,8 @@ and VarnState(sst : SharedState) =
     
     member x.OpenVarn(nm, isw) = 
         let pstt : PosnState = sst.Pstt
+        pstt.Pos <- Pos.Start()
+        pstt.Mvs <- []
         sst.SetMode(DoVarn)
         visw <- isw
         curv <- Varn.load (nm, visw)
@@ -156,6 +158,8 @@ and VarnState(sst : SharedState) =
     
     member x.NewVarn(nm, isw) = 
         let pstt : PosnState = sst.Pstt
+        pstt.Pos <- Pos.Start()
+        pstt.Mvs <- []
         sst.SetMode(DoVarn)
         curv <- Varn.cur (nm, isw)
         let currAnls = Eng.getanls (Eng.loadLineStore(), curv)
@@ -568,6 +572,7 @@ and GameState(sst : SharedState) =
             let curv = vstt.CurVarn
             let mvl = Varn.findnmvs pstt.Mvs curv.Brchs
             if mvl.Length > 0 then 
+                Thread.Sleep(1000)
                 pstt.Pos.DoMv(mvl.Head)
                 pstt.Pos <- pstt.Pos
                 let mvs = x.Gm.Moves @ [ mvl.Head ]
@@ -632,6 +637,7 @@ and GameState(sst : SharedState) =
                     let curv = vstt.CurVarn
                     let mvl = Varn.findnmvs pstt.Mvs curv.Brchs
                     if mvl.Length > 0 then 
+                        Thread.Sleep(1000)
                         pstt.Pos.DoMv(mvl.Head)
                         pstt.Pos <- pstt.Pos
                         let mvs = x.Gm.Moves @ [ mvl.Head ]

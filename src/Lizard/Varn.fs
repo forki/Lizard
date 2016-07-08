@@ -40,8 +40,8 @@ module Varn =
     let rec fndidx rear cidx no idx mb = 
         if List.isEmpty rear then idx
         else 
-            let curb = List.rev (rear.Head)
-            let cno = smmv curb (List.rev mb) 0
+            let curb = rear.Head
+            let cno = smmv curb mb 0
             
             let nidx = 
                 if cno < no then idx
@@ -65,9 +65,8 @@ module Varn =
                 let curb:Move list = rear.Head
                 if curb.Length < mb.Length && curb = mb.[0..curb.Length - 1] then 
                     (front @ mb :: rear.Tail), true
-                elif curb.Length >= mb.Length && curb.[0..mb.Length - 1] = mb then 
-                    if mb.[mb.Length - 1] = curb.[mb.Length - 1] then (front @ rear), true
-                    else (front @ mb :: rear.Tail), true
+                elif curb.Length >= mb.Length && curb.[0..mb.Length - 1] = mb.[0..mb.Length - 1]  then 
+                    (front @ rear), true
                 else addex (front @ [ rear.Head ]) rear.Tail false
         
         // use functions

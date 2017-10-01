@@ -188,8 +188,8 @@ let ``Varn wvars``() =
 [<Test>]
 let ``Varn bvars``() =
     let ans = Varn.bvars()
-    ans.[0]|>should equal "Flank"
-    ans.Length|>should equal 10
+    ans.[0]|>should equal "Abrahams"
+    ans.Length|>should equal 11
 
 [<Test>]
 let ``Varn cur2txt``() =

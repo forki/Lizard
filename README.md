@@ -1,7 +1,7 @@
 
 # Lizard
 
-This project conatains a tools to mnage chess openings and some other chess utilities.
+This project conatains a tools to manage chess openings and some other chess utilities.
 
 In order to build run 
 

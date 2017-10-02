@@ -1,2 +1,4 @@
+File:FsUnitTyped.fs
 group Test
-	NUnit
+    NUnit
+	NUnit3TestAdapter

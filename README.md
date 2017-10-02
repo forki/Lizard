@@ -10,8 +10,7 @@ In order to build run
 
 ## Build Status
 
-[![Build Status](https://img.shields.io/appveyor/ci/fsgit/ProjectScaffold/master.svg)](https://ci.appveyor.com/project/fsgit/projectscaffold)
-
+[![Build status](https://ci.appveyor.com/api/projects/status/e7wasd3n42vfk347?svg=true)](https://ci.appveyor.com/project/pb_bwfc/lizard)
 ## Maintainer(s)
 
 - [Phil Brooks](https://github.com/pbbwfc)

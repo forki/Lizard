@@ -1,6 +1,6 @@
 ﻿module Posn
 
-open FsUnit
+open FsUnitTyped
 open NUnit.Framework
 open Lizard
 
@@ -18,10 +18,10 @@ let weprPgn =
 let ``Posn pgn2pos wepr``() =
      let gms = PGN.ReadFromString weprPgn
      let gm = gms.Head
-     gm.Moves.Head.Mpgn|>should equal "d4"
+     gm.Moves.Head.Mpgn|>shouldEqual "d4"
      let rmvs = gm.Moves|>List.rev
      let lmv = rmvs.Head
-     lmv.Mpgn|> should equal "dxe6"
+     lmv.Mpgn|> shouldEqual "dxe6"
 
 let weplPgn = 
     "[Event \"?\"]
@@ -37,10 +37,10 @@ let weplPgn =
 let ``Posn pgn2pos wepl``() =
      let gms = PGN.ReadFromString weplPgn
      let gm = gms.Head
-     gm.Moves.Head.Mpgn|>should equal "d4"
+     gm.Moves.Head.Mpgn|>shouldEqual "d4"
      let rmvs = gm.Moves|>List.rev
      let lmv = rmvs.Head
-     lmv.Mpgn|> should equal "dxc6"
+     lmv.Mpgn|> shouldEqual "dxc6"
 
 let beprPgn = 
     "[Event \"?\"]
@@ -56,10 +56,10 @@ let beprPgn =
 let ``Posn pgn2pos bepr``() =
      let gms = PGN.ReadFromString beprPgn
      let gm = gms.Head
-     gm.Moves.Head.Mpgn|>should equal "c3"
+     gm.Moves.Head.Mpgn|>shouldEqual "c3"
      let rmvs = gm.Moves|>List.rev
      let lmv = rmvs.Head
-     lmv.Mpgn|> should equal "exf3"
+     lmv.Mpgn|> shouldEqual "exf3"
 
 let beplPgn = 
     "[Event \"?\"]
@@ -75,7 +75,7 @@ let beplPgn =
 let ``Posn pgn2pos bepl``() =
      let gms = PGN.ReadFromString beplPgn
      let gm = gms.Head
-     gm.Moves.Head.Mpgn|>should equal "c3"
+     gm.Moves.Head.Mpgn|>shouldEqual "c3"
      let rmvs = gm.Moves|>List.rev
      let lmv = rmvs.Head
-     lmv.Mpgn|> should equal "exd3"
+     lmv.Mpgn|> shouldEqual "exd3"

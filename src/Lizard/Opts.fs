@@ -1,6 +1,6 @@
 namespace Lizard
 
-open Nessos.FsPickler.Json
+open MBrace.FsPickler.Json
 open System.IO
 
 module Opts = 

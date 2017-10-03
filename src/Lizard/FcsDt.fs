@@ -1,10 +1,9 @@
 namespace Lizard
 
 open System
-open HttpClient
 open System.IO
 open System.Xml.Linq
-open Nessos.FsPickler.Json
+open MBrace.FsPickler.Json
 
 module FcsDt = 
     //STORAGE elements
@@ -49,12 +48,13 @@ module FcsDt =
     let getxml fen = 
         let site = @"http://www.ficsgames.org/cgi-bin/explorer.cgi"
         
-        let resp = 
-            createRequest Get site
-            |> withQueryStringItem { name = "FEN"
-                                     value = fen }
-            |> getResponseBody
-        resp
+        //let resp = 
+        //    Request.createUrl Post site
+        //    |> Request.queryStringItem "FEN" fen
+        //    |> getResponse
+        //let  job = Response.readBodyAsString (run resp)
+        //job.ToString()
+        "TODO"
     
     ///Convert XML to ficsdata type
     let xml2ficsd x = 

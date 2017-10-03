@@ -42,8 +42,7 @@ module Controls =
         //Support
         let srpl = new RibbonPanel("Support")
         let opt = new RibbonButton("Options", Image = img "options.png")
-        let asrs = new RibbonButton("ASR Services", MaxSizeMode = RibbonElementSizeMode.Medium, SmallImage = null)
-        let blg = new RibbonButton("F# Blog", MaxSizeMode = RibbonElementSizeMode.Medium, SmallImage = null)
+        let src = new RibbonButton("Source Code", MaxSizeMode = RibbonElementSizeMode.Medium, SmallImage = null)
         let cns = new RibbonButton("Conservation", MaxSizeMode = RibbonElementSizeMode.Medium, SmallImage = null)
         //Play
         let ptab = new RibbonTab("Play")
@@ -64,8 +63,7 @@ module Controls =
         //Support
         let srpl2 = new RibbonPanel("Support")
         let opt2 = new RibbonButton("Options", Image = img "options.png")
-        let asrs2 = new RibbonButton("ASR Services", MaxSizeMode = RibbonElementSizeMode.Medium, SmallImage = null)
-        let blg2 = new RibbonButton("F# Blog", MaxSizeMode = RibbonElementSizeMode.Medium, SmallImage = null)
+        let src2 = new RibbonButton("Source Code", MaxSizeMode = RibbonElementSizeMode.Medium, SmallImage = null)
         let cns2 = new RibbonButton("Conservation", MaxSizeMode = RibbonElementSizeMode.Medium, SmallImage = null)
         
         // save variation
@@ -147,7 +145,7 @@ module Controls =
             otab.Panels.Add(trpl)
             arpl.Items.AddRange([ anll; anlp ])
             otab.Panels.Add(arpl)
-            srpl.Items.AddRange([ opt; asrs; blg; cns ])
+            srpl.Items.AddRange([ opt; src; cns ])
             otab.Panels.Add(srpl)
             this.Tabs.Add(otab)
         
@@ -158,7 +156,7 @@ module Controls =
             ptab.Panels.Add(frpl)
             pgrpl.Items.AddRange([ sPGN; opEng; opFICS; opFile ])
             ptab.Panels.Add(pgrpl)
-            srpl2.Items.AddRange([ opt2; asrs2; blg2; cns2 ])
+            srpl2.Items.AddRange([ opt2; src2; cns2 ])
             ptab.Panels.Add(srpl2)
             this.Tabs.Add(ptab)
         
@@ -185,15 +183,13 @@ module Controls =
             anll.Click.Add(anlline)
             anlp.Click.Add(anlpos)
             opt.Click.Add(fun _ -> (new DlgOpts()).ShowDialog() |> ignore)
-            asrs.Click.Add(fun _ -> System.Diagnostics.Process.Start("http://www.asr-services.com/") |> ignore)
-            blg.Click.Add(fun _ -> System.Diagnostics.Process.Start("http://fsharpchess.blogspot.co.uk/") |> ignore)
+            src.Click.Add(fun _ -> System.Diagnostics.Process.Start("https://github.com/pbbwfc/Lizard") |> ignore)
             cns.Click.Add(fun _ -> System.Diagnostics.Process.Start("http://www.arc-trust.org/") |> ignore)
             //Play
             wnw.Click.Add(fun _ -> gstt.NewGame(true))
             bnw.Click.Add(fun _ -> gstt.NewGame(false))
             opt2.Click.Add(fun _ -> (new DlgOpts()).ShowDialog() |> ignore)
-            asrs2.Click.Add(fun _ -> System.Diagnostics.Process.Start("http://www.asr-services.com/") |> ignore)
-            blg2.Click.Add(fun _ -> System.Diagnostics.Process.Start("http://fsharpchess.blogspot.co.uk/") |> ignore)
+            src2.Click.Add(fun _ -> System.Diagnostics.Process.Start("https://github.com/pbbwfc/Lizard") |> ignore)
             cns2.Click.Add(fun _ -> System.Diagnostics.Process.Start("http://www.arc-trust.org/") |> ignore)
             fics.Click.Add(fun _ -> gstt.StartFics())
             fseek.Click.Add(fun _ -> gstt.SeekFics())

@@ -2,7 +2,7 @@ namespace Lizard
 
 open System
 open System.IO
-open Nessos.FsPickler.Json
+open MBrace.FsPickler.Json
 
 module Test = 
     //STORAGE elements

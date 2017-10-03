@@ -1,8 +1,7 @@
-group Build
-	FSharp.Core
-        DockPanelSuite
-	FsPickler
-	FsPickler.Json
-	Newtonsoft.Json
-	SourceGrid
-	System.Windows.Forms.Ribbon35
+FSharp.Core
+DockPanelSuite
+FsPickler
+FsPickler.Json
+Newtonsoft.Json
+SourceGrid
+System.Windows.Forms.Ribbon35

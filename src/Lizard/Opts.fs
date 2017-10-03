@@ -17,19 +17,12 @@ module Opts =
             { Opnfol = "ToDo"
               Tstfol = "ToDo"
               Engfol = "ToDo"
-              Gmfol = "ToDo"
               Rnum = 1
               Rskip = 1
               Lnum = 1
               Lskip = 1
               Emaxdepth = 20
-              Elog = false
-              Gsecpm = 1
-              Guseopn = false
-              Funame = "ToDo"
-              Fpass = "ToDo"
-              Ftime = 1
-              Fuopn = false }
+              Elog = false }
     
     ///save - save options to file
     let save (opts) = 

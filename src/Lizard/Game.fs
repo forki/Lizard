@@ -26,8 +26,7 @@ module Game =
         Send("setoption name Threads value " + (System.Environment.ProcessorCount - 1).ToString(), prc)
         Send("position startpos", prc)
         Send("position startpos moves " + ln + " ", prc)
-        if (depth > 0) then Send("go depth " + depth.ToString(), prc)
-        else Send("go movetime " + opts.Gsecpm.ToString() + "000", prc)
+        Send("go depth " + depth.ToString(), prc)
     
     ///set up process
     let SetUpPrc (prc : System.Diagnostics.Process) eng = 
@@ -60,11 +59,3 @@ module Game =
                       |> Convert.ToByte
                       |> Some }
     
-    ///update PGN given position header and name
-    let updPGN gm nm = 
-        let opts = Opts.load()
-        let pgnfil = Path.Combine(opts.Gmfol, nm)
-        Directory.CreateDirectory opts.Gmfol |> ignore
-        File.AppendAllText(pgnfil, Environment.NewLine + gm.ToString())
-        MessageBox.Show("Game added to " + pgnfil, "Game Saved", MessageBoxButtons.OK, MessageBoxIcon.Information) 
-        |> ignore

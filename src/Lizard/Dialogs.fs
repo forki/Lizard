@@ -153,7 +153,6 @@ module Dialogs =
                   "Openings Folder", opts.Opnfol, Text
                   "Test Folder", opts.Tstfol, Text
                   "Engine Folder", opts.Engfol, Text
-                  "Game Folder", opts.Gmfol, Text
                   "Test", "Parameters", Head
                   "Random - Num Positions", opts.Rnum.ToString(), Num
                   "Random - Skip Moves", opts.Rskip.ToString(), Num
@@ -161,15 +160,7 @@ module Dialogs =
                   "Linear = Skip Moves", opts.Lskip.ToString(), Num
                   "Engine", "Parameters", Head
                   "Max Depth", opts.Emaxdepth.ToString(), Num
-                  "Create Log", opts.Elog.ToString(), Bool
-                  "Game", "Parameters", Head
-                  "Seconds per Move", opts.Gsecpm.ToString(), Num
-                  "Use Openings", opts.Guseopn.ToString(), Bool
-                  "FICS", "Parameters", Head
-                  "User Name", opts.Funame, Text
-                  "Password", opts.Fpass.ToString(), Text
-                  "Minutes per Game", opts.Ftime.ToString(), Num
-                  "Use Openings", opts.Fuopn.ToString(), Bool ]
+                  "Create Log", opts.Elog.ToString(), Bool ]
             
             dat |> List.iteri setrw
             dg.Columns.[1].MinimalWidth <- 140
@@ -180,19 +171,12 @@ module Dialogs =
                 { Opnfol = dg.[1, 1].Value.ToString()
                   Tstfol = dg.[2, 1].Value.ToString()
                   Engfol = dg.[3, 1].Value.ToString()
-                  Gmfol = dg.[4, 1].Value.ToString()
-                  Rnum = int (dg.[6, 1].Value.ToString())
-                  Rskip = int (dg.[7, 1].Value.ToString())
-                  Lnum = int (dg.[8, 1].Value.ToString())
-                  Lskip = int (dg.[9, 1].Value.ToString())
-                  Emaxdepth = int (dg.[11, 1].Value.ToString())
-                  Elog = dg.[12, 1].Value.ToString().StartsWith("T")
-                  Gsecpm = int (dg.[14, 1].Value.ToString())
-                  Guseopn = dg.[15, 1].Value.ToString().StartsWith("T")
-                  Funame = dg.[17, 1].Value.ToString()
-                  Fpass = dg.[18, 1].Value.ToString()
-                  Ftime = int (dg.[19, 1].Value.ToString())
-                  Fuopn = dg.[20, 1].Value.ToString().StartsWith("T") }
+                  Rnum = int (dg.[5, 1].Value.ToString())
+                  Rskip = int (dg.[6, 1].Value.ToString())
+                  Lnum = int (dg.[7, 1].Value.ToString())
+                  Lskip = int (dg.[8, 1].Value.ToString())
+                  Emaxdepth = int (dg.[10, 1].Value.ToString())
+                  Elog = dg.[11, 1].Value.ToString().StartsWith("T") }
             stt.SaveOpts(opts)
             this.Close()
         

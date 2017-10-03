@@ -76,19 +76,12 @@ module Types =
         { Opnfol : string
           Tstfol : string
           Engfol : string
-          Gmfol : string
           Rnum : int
           Rskip : int
           Lnum : int
           Lskip : int
           Emaxdepth : int
-          Elog : bool
-          Gsecpm : int
-          Guseopn : bool
-          Funame : string
-          Fpass : string
-          Ftime : int
-          Fuopn : bool }
+          Elog : bool }
     
     //ficsdata
     type Ficsmv = 

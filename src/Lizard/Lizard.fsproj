@@ -64,9 +64,6 @@
   </Target>
   -->
   <ItemGroup>
-    <Content Include="Updates.txt">
-      <Paket>True</Paket>
-    </Content>
     <Compile Include="AssemblyInfo.fs" />
     <None Include="App.config" />
     <EmbeddedResource Include="Cursors\BlackBishop.cur" />
@@ -144,7 +141,6 @@
     <Compile Include="Eng.fs" />
     <Compile Include="Game.fs" />
     <Compile Include="FcsDt.fs" />
-    <Compile Include="Fics.fs" />
     <Compile Include="Shortcuts.fs" />
     <Compile Include="State.fs" />
     <Compile Include="Dialogs.fs" />

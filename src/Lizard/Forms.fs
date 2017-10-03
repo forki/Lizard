@@ -17,9 +17,6 @@ module Forms =
         let al = new Anal()
         let vn = new Varn()
         let tst = new Test()
-        let gm = new Game()
-        let fc = new Fics()
-        let db = new Db()
         let res = new TestRes()
         let fdt = new FicsData()
         let lan = new LineAnal()
@@ -32,42 +29,15 @@ module Forms =
             | DoVarn -> 
                 vn.Show()
                 tst.Hide()
-                gm.Hide()
-                fc.Hide()
-                db.Hide()
             | DoTest -> 
                 vn.Hide()
                 tst.Show()
-                gm.Hide()
-                fc.Hide()
-                db.Hide()
-            | DoPlay -> 
-                vn.Hide()
-                tst.Hide()
-                gm.Show()
-                fc.Hide()
-                db.Hide()
-            | DoFics -> 
-                vn.Hide()
-                tst.Hide()
-                gm.Hide()
-                fc.Show()
-                db.Hide()
-            | DoDb -> 
-                vn.Hide()
-                tst.Hide()
-                gm.Hide()
-                fc.Hide()
-                db.Show()
             cont.ResumeLayout(true, true)
             Application.DoEvents()
         
         let hideTabs (e) = 
             tst.Hide()
             res.Hide()
-            gm.Hide()
-            fc.Hide()
-            db.Hide()
         
         do 
             this.Controls.Add(cont)
@@ -80,9 +50,6 @@ module Forms =
             vn.Show(cont, DockState.Document)
             tst.Show(cont, DockState.Document)
             res.Show(cont, DockState.Document)
-            gm.Show(cont, DockState.Document)
-            fc.Show(cont, DockState.Document)
-            db.Show(cont, DockState.Document)
             this.Controls.Add(ts)
             //events
             stt.ModeChng |> Observable.add updTabs

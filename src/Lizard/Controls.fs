@@ -44,27 +44,6 @@ module Controls =
         let opt = new RibbonButton("Options", Image = img "options.png")
         let src = new RibbonButton("Source Code", MaxSizeMode = RibbonElementSizeMode.Medium, SmallImage = null)
         let cns = new RibbonButton("Conservation", MaxSizeMode = RibbonElementSizeMode.Medium, SmallImage = null)
-        //Play
-        let ptab = new RibbonTab("Play")
-        //Engine
-        let erpl = new RibbonPanel("Play Engine")
-        let wnw = new RibbonButton("White", Image = img "wnw.png")
-        let bnw = new RibbonButton("Black", Image = img "bnw.png")
-        //Fics
-        let frpl = new RibbonPanel("FICS")
-        let fics = new RibbonButton("Connect", Image = img "connect.png")
-        let fseek = new RibbonButton("Seek", Image = img "seek.png")
-        //PGN
-        let pgrpl = new RibbonPanel("PGN")
-        let sPGN = new RibbonButton("Save", Image = img "sav.png")
-        let opEng = new RibbonButton("Engine", Image = img "openred.png")
-        let opFICS = new RibbonButton("FICS", Image = img "opengreen.png")
-        let opFile = new RibbonButton("Open File", Image = img "openblue.png")
-        //Support
-        let srpl2 = new RibbonPanel("Support")
-        let opt2 = new RibbonButton("Options", Image = img "options.png")
-        let src2 = new RibbonButton("Source Code", MaxSizeMode = RibbonElementSizeMode.Medium, SmallImage = null)
-        let cns2 = new RibbonButton("Conservation", MaxSizeMode = RibbonElementSizeMode.Medium, SmallImage = null)
         
         // save variation
         let dosave (e) = 
@@ -124,14 +103,6 @@ module Controls =
         //analyse pos
         let anlpos (e) = astt.AnlpStart()
         
-        //open Pgn file
-        let openFile (e) = 
-            let fopen = new OpenFileDialog(Filter = "PGN files|*.pgn")
-            if fopen.ShowDialog() = DialogResult.OK then 
-                Cursor.Current <- Cursors.WaitCursor
-                gstt.OpenPGN(fopen.FileName)
-                Cursor.Current <- Cursors.Default
-        
         let addOpen() = 
             wb.DropDownItems.Add(wbtn)
             wb.DropDownItems.Add(bbtn)
@@ -149,23 +120,10 @@ module Controls =
             otab.Panels.Add(srpl)
             this.Tabs.Add(otab)
         
-        let addPlay() = 
-            erpl.Items.AddRange([ wnw; bnw ])
-            ptab.Panels.Add(erpl)
-            frpl.Items.AddRange([ fics; fseek ])
-            ptab.Panels.Add(frpl)
-            pgrpl.Items.AddRange([ sPGN; opEng; opFICS; opFile ])
-            ptab.Panels.Add(pgrpl)
-            srpl2.Items.AddRange([ opt2; src2; cns2 ])
-            ptab.Panels.Add(srpl2)
-            this.Tabs.Add(ptab)
-        
         do 
             this.QuickAcessToolbar.Items.Add(sv)
             //Openings
             addOpen()
-            //Play
-            addPlay()
             //events
             nw.Click.Add(fun _ -> (new DlgNew()).ShowDialog() |> ignore)
             opn.Click.Add(fun _ -> vstt.OpenVarn(vl.SelectedItem.Text, wb.SelectedItem.Text = "White"))
@@ -185,18 +143,6 @@ module Controls =
             opt.Click.Add(fun _ -> (new DlgOpts()).ShowDialog() |> ignore)
             src.Click.Add(fun _ -> System.Diagnostics.Process.Start("https://github.com/pbbwfc/Lizard") |> ignore)
             cns.Click.Add(fun _ -> System.Diagnostics.Process.Start("http://www.arc-trust.org/") |> ignore)
-            //Play
-            wnw.Click.Add(fun _ -> gstt.NewGame(true))
-            bnw.Click.Add(fun _ -> gstt.NewGame(false))
-            opt2.Click.Add(fun _ -> (new DlgOpts()).ShowDialog() |> ignore)
-            src2.Click.Add(fun _ -> System.Diagnostics.Process.Start("https://github.com/pbbwfc/Lizard") |> ignore)
-            cns2.Click.Add(fun _ -> System.Diagnostics.Process.Start("http://www.arc-trust.org/") |> ignore)
-            fics.Click.Add(fun _ -> gstt.StartFics())
-            fseek.Click.Add(fun _ -> gstt.SeekFics())
-            sPGN.Click.Add(fun _ -> gstt.SavePGN())
-            opEng.Click.Add(fun _ -> gstt.OpenPGN("EngGames.pgn"))
-            opFICS.Click.Add(fun _ -> gstt.OpenPGN("FicsGames.pgn"))
-            opFile.Click.Add(openFile)
     
     type Board() as this = 
         inherit DockContent(Icon = ico "board.ico", CloseButtonVisible = false, Text = "Board")
@@ -400,7 +346,6 @@ module Controls =
             pstt.PsSqsChng |> Observable.add highlightsqs
             pstt.Prom |> Observable.add showprom
             pstt.Ornt |> Observable.add orient
-            gstt.GameSqTo |> Observable.add highlightsqs
             pstt.BmChng |> Observable.add updbm
             pbtn.Click.Add(fun _ -> Clipboard.SetText({Lizard.PGN.Game.Blank() with Moves=pstt.Mvs}.ToString()))
             fbtn.Click.Add(fun _ -> Clipboard.SetText(pstt.Pos.ToString()))

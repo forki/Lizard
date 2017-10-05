@@ -144,7 +144,6 @@
     <Compile Include="Shortcuts.fs" />
     <Compile Include="State.fs" />
     <Compile Include="Dialogs.fs" />
-    <Compile Include="ControlsPlay.fs" />
     <Compile Include="Controls.fs" />
     <Compile Include="Forms.fs" />
     <Compile Include="Program.fs" />

@@ -4,7 +4,6 @@ open System.Windows.Forms
 open System.Drawing
 open State
 open Controls
-open ControlsPlay
 open WeifenLuo.WinFormsUI.Docking
 
 module Forms = 

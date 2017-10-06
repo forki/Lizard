@@ -21,6 +21,8 @@ Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Lizard", "src\Lizard\Lizard
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Lizard.Tests", "tests\Lizard.Tests\Lizard.Tests.fsproj", "{22B2D35E-7287-4B16-95F8-626475AF5396}"
 EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Upgrade", "src\Upgrade\Upgrade.fsproj", "{4F3B5B04-871B-4251-9405-76E2A847C490}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -35,6 +37,10 @@ Global
 		{22B2D35E-7287-4B16-95F8-626475AF5396}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{22B2D35E-7287-4B16-95F8-626475AF5396}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{22B2D35E-7287-4B16-95F8-626475AF5396}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4F3B5B04-871B-4251-9405-76E2A847C490}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4F3B5B04-871B-4251-9405-76E2A847C490}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4F3B5B04-871B-4251-9405-76E2A847C490}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4F3B5B04-871B-4251-9405-76E2A847C490}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

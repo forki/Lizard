@@ -2,6 +2,7 @@ namespace Lizard
 
 open System
 open System.IO
+open MBrace.FsPickler.Json
 
 module Varn = 
     ///cur - create Current Varn
@@ -121,6 +122,7 @@ module Varn =
         fmvl.[0..rw]
     
     //STORAGE elements
+    let json = FsPickler.CreateJsonSerializer()
     //set up paths
     let opts = Opts.load()
     
@@ -136,7 +138,7 @@ module Varn =
     
     ///wvars gets list of white varns
     let wvars() = 
-        Directory.GetFiles(wfol, "*.pgn")
+        Directory.GetFiles(wfol, "*.json")
         |> Array.map Path.GetFileNameWithoutExtension
         |> List.ofArray
     
@@ -144,7 +146,7 @@ module Varn =
     
     ///bvars gets list of black varns
     let bvars() = 
-        Directory.GetFiles(bfol, "*.pgn")
+        Directory.GetFiles(bfol, "*.json")
         |> Array.map Path.GetFileNameWithoutExtension
         |> List.ofArray
     
@@ -161,19 +163,9 @@ module Varn =
         try 
             let pfn = 
                 Path.Combine((if cur.Isw then wfol
-                              else bfol), cur.Name + ".pgn")
-            
-            let nl = Environment.NewLine
-            
-            let mvl2pgn mvl =
-                let gm = {PGN.Game.Blank() with Moves=mvl}
-                gm.ToString() 
-
-            let pstr = 
-                cur.Brchs
-                |> List.map mvl2pgn
-                |> List.reduce (fun a b -> a + nl + b)
-            File.WriteAllText(pfn, pstr)
+                              else bfol), cur.Name + ".json")
+            let str = json.PickleToString<Varn>(cur)
+            File.WriteAllText(pfn, str)
             "Save successful for variation: " + cur.Name
         with e -> "Save failed with error: " + e.ToString()
     
@@ -188,14 +180,10 @@ module Varn =
         //set this to file in White/Black folder with filename same as name
         let pfn = 
             Path.Combine((if isw then wfol
-                          else bfol), nm + ".pgn")
+                          else bfol), nm + ".json")
+        let str = File.ReadAllText(pfn)
+        json.UnPickleOfString<Varn>(str)
         
-        let pgns = PGN.ReadFromFile pfn
-        let brchs = pgns |> List.map (fun g -> g.Moves)
-        { Name = nm
-          Isw = isw
-          Brchs = brchs }
-    
     ///load - deserializes to a varn from a file or files 
     let loada (nm, isw) = 
         let vnnames = 
@@ -232,4 +220,4 @@ module Varn =
     ///delete - deletes the variation file 
     let delete (nm, isw) = 
         File.Delete(Path.Combine((if isw then wfol
-                                  else bfol), nm + ".pgn"))
+                                  else bfol), nm + ".json"))

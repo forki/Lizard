@@ -64,6 +64,9 @@
   </Target>
   -->
   <ItemGroup>
+    <Content Include="Updates.txt">
+      <Paket>True</Paket>
+    </Content>
     <Compile Include="AssemblyInfo.fs" />
     <None Include="App.config" />
     <EmbeddedResource Include="Cursors\BlackBishop.cur" />

@@ -8,6 +8,7 @@ open DevAge.Drawing.VisualElements
 open Dialogs
 open State
 open Lizard.Types
+open Lizard
 
 module Controls = 
     type TsRib() as this = 
@@ -358,7 +359,7 @@ module Controls =
         | NextL
         | PrevL
     
-    type Varn() as this = 
+    type VarnGrid() as this = 
         inherit DockContent(Icon = ico "board.ico", CloseButtonVisible = false, Text = "Variation")
         let pnl = new Panel(Dock = DockStyle.Top, Height = 30)
         let nextmvs = 
@@ -377,8 +378,7 @@ module Controls =
         let dg = 
             new Grid(Dock = DockStyle.Fill, BorderStyle = BorderStyle.FixedSingle, FixedRows = 1, FixedColumns = 1, 
                      EnableSort = false)
-        let anlCell = new Cells.Views.Cell(BackColor = Color.DarkGreen, ForeColor = Color.White)
-        let anlCellR = new Cells.Views.Cell(BackColor = Color.DarkGreen, ForeColor = Color.Orange)
+        let mutable hlcell:Option<int*int*Cells.Views.IView> = None
         let viewSelCell = new Cells.Views.Cell(BackColor = Color.Yellow)
         
         // updateLV
@@ -391,83 +391,7 @@ module Controls =
                 itm.Tag <- m.Mpgn
                 nextmvs.Items.Add itm |> ignore
             nmvs |> List.iter addit
-        
-        let addhdr i = 
-            let columnHeader = 
-                new Cells.ColumnHeader(if i % 2 = 0 then (i / 2 + 1).ToString() + "w"
-                                       else (i / 2 + 1).ToString() + "b")
-            columnHeader.View <- viewColHeader
-            dg.[0, i + 1] <- columnHeader
-        
-        let getView1 (grays : bool [,]) r c pr pc = 
-            if c > 1 && dg.[r, c + 1].DisplayText = dg.[r, c - 1].DisplayText && (pr > 0 && grays.[pr, pc] || pr = 0) then 
-                viewCell1G
-            else viewCell1
-        
-        let getView2 (grays : bool [,]) r c pr pc = 
-            if c > 1 && dg.[r, c + 1].DisplayText = dg.[r, c - 1].DisplayText && (pr > 0 && grays.[pr, pc] || pr = 0) then 
-                viewCell2G
-            else viewCell2
-        
-        let getView (grays : bool [,]) r c pr pc = 
-            if (c + 1) % 4 = 0 || (c + 2) % 4 = 0 then getView1 grays r c pr pc
-            else getView2 grays r c pr pc
-        
-        let addcell (grays : bool [,]) r c cl = 
-            let pr, pc = 
-                if (c + 1) % 2 = 0 then r, c
-                else r - 1, c + 2
-            dg.[r, c + 1] <- new SourceGrid.Cells.Cell(cl, typedefof<string>)
-            dg.[r, c + 1].View <- getView grays r c pr pc
-            grays.[r, c + 1] <- c > 1 && dg.[r, c + 1].DisplayText = dg.[r, c - 1].DisplayText 
-                                && (pr > 0 && grays.[pr, pc] || pr = 0)
-        
-        // updateVariation
-        let updVarn (lns : string [] [], anl) = 
-            let numcols = 
-                if lns.Length > 0 then lns.[0].Length
-                else 0
-            
-            let grays = Array2D.create (lns.Length + 1) (numcols + 1) true
-            let numvars = numcols / 2
-            dg.Rows.Clear()
-            dg.Rows.Insert(0)
-            dg.ColumnsCount <- numcols + 1
-            dg.[0, 0] <- new Cells.ColumnHeader("")
-            [ 0..numcols - 1 ] |> List.iter addhdr
-            let addr r bf = 
-                dg.Rows.Insert(r + 1)
-                let rowheader = new SourceGrid.Cells.Cell(r + 1, typedefof<string>)
-                rowheader.View <- viewRowHeader
-                dg.[r + 1, 0] <- rowheader
-                bf |> Array.iteri (addcell grays (r + 1))
-            lns |> Array.iteri addr
-            let addanlcell r c cl = 
-                dg.[r, c * 2 + 1] <- new SourceGrid.Cells.Cell(cl.Depth, typedefof<string>)
-                dg.[r, c * 2 + 1].View <- anlCell
-                dg.[r, c * 2 + 2] <- new SourceGrid.Cells.Cell(cl.Scr, typedefof<string>)
-                dg.[r, c * 2 + 2].View <- if cl.Scr > 0 then anlCellR
-                                          else anlCell
-                dg.[r + 1, c * 2 + 1] <- new SourceGrid.Cells.Cell(cl.BmPGN, typedefof<string>)
-                dg.[r + 1, c * 2 + 1].View <- anlCell
-                dg.[r + 1, c * 2 + 2] <- new SourceGrid.Cells.Cell(cl.RmPGN, typedefof<string>)
-                dg.[r + 1, c * 2 + 2].View <- anlCell
-            
-            let addanlr bf = 
-                let r = dg.RowsCount - 1
-                dg.Rows.Insert(r + 1)
-                dg.Rows.Insert(r + 2)
-                let rowheader = new SourceGrid.Cells.Cell("d:scr", typedefof<string>)
-                rowheader.View <- viewRowHeader
-                dg.[r + 1, 0] <- rowheader
-                let rowheader = new SourceGrid.Cells.Cell("best", typedefof<string>)
-                rowheader.View <- viewRowHeader
-                dg.[r + 2, 0] <- rowheader
-                bf |> Array.iteri (addanlcell (r + 1))
-            
-            anl |> addanlr
-            dg.AutoSizeCells()
-        
+
         //utility functions to convert from row column to variation and move
         let vm (r, c) = (c - 1) / 2, (r - 1) * 2 + (c - 1) % 2
         
@@ -476,29 +400,45 @@ module Controls =
             v * 2 + (if m % 2 = 1 then 1
                      else 0)
             + 1
-        
-        let getCelView1 r c (cel : Cells.ICell) = 
-            let prevgray = 
-                (c % 2 = 0 && (dg.[r, c - 1].View :?> Cells.Views.Cell) <> viewCell1) 
-                || (c % 2 = 1 && dg.[r - 1, c + 1] <> null && (dg.[r - 1, c + 1].View :?> Cells.Views.Cell) <> viewCell1)
-            if c > 2 && prevgray && dg.[r, c] <> null && dg.[r, c - 2] <> null 
-               && dg.[r, c].DisplayText = dg.[r, c - 2].DisplayText then viewCell1G
-            else viewCell1
-        
-        let getCelView2 r c (cel : Cells.ICell) = 
-            let prevgray = 
-                (c % 2 = 0 && (dg.[r, c - 1].View :?> Cells.Views.Cell) <> viewCell2) 
-                || (c % 2 = 1 && dg.[r - 1, c + 1] <> null && (dg.[r - 1, c + 1].View :?> Cells.Views.Cell) <> viewCell2)
-            if c > 2 && prevgray && dg.[r, c] <> null && dg.[r, c - 2] <> null 
-               && dg.[r, c].DisplayText = dg.[r, c - 2].DisplayText then viewCell2G
-            else viewCell2
-        
-        let getCelView r c (cel : Cells.ICell) = 
-            if c % 4 = 0 || (c + 1) % 4 = 0 then getCelView1 r c cel
-            else getCelView2 r c cel
-        
-        let setView r c (cel : Cells.ICell) = 
-            if r > 0 && c > 0 && r < dg.RowsCount - 2 then cel.View <- getCelView r c cel
+
+        // updateVariation
+        let updVarn (curv:Varn) = 
+            let numcols = curv.Brchs.Length * 2
+            let numrows = ((curv|>Varn.maxl) + 1 )/ 2
+            dg.Rows.Clear()
+            dg.Rows.Insert(0)
+            dg.ColumnsCount <- numcols + 1
+            //add header row
+            dg.[0, 0] <- new Cells.ColumnHeader("")
+            for c = 1 to numcols do
+                let columnHeader = 
+                    new Cells.ColumnHeader(if c % 2 = 1 then (c / 2 + 1).ToString() + "w"
+                                           else (c / 2).ToString() + "b")
+                columnHeader.View <- viewColHeader
+                dg.[0, c] <- columnHeader
+            // add row headers
+            for r = 1 to numrows do
+                dg.Rows.Insert(r)
+                let rowheader = new SourceGrid.Cells.Cell(r, typedefof<string>)
+                rowheader.View <- viewRowHeader
+                dg.[r, 0] <- rowheader
+            //add moves
+            let brchs = curv.Brchs
+            for b=0 to brchs.Length-1 do
+                let brch = brchs.[b]
+                let mutable ingrey = false
+                for i = 0 to brch.Length-1 do
+                    let cell = new SourceGrid.Cells.Cell(brch.[i].Mpgn, typedefof<string>)
+                    ingrey <- 
+                        b>0 && i=0 && brchs.[b].[0].Mpgn=brchs.[b-1].[0].Mpgn //initial set
+                        || ingrey && brchs.[b].[i].Mpgn=brchs.[b-1].[i].Mpgn //already set and still the same 
+                    let r,c = rc(b,i)
+                    cell.View <- if c % 4 = 0 || (c + 1) % 4 = 0 then
+                                    if ingrey then viewCell1G else viewCell1 
+                                 else 
+                                    if ingrey then viewCell2G else viewCell2
+                    dg.[r,c] <- cell
+            dg.AutoSizeCells()
         
         // selmv called when cell is selected
         let selmv (e : RangeRegionChangedEventArgs) = 
@@ -507,9 +447,11 @@ module Controls =
                 if cl.Row > 0 && cl.Column > 0 && cl.Row < dg.RowsCount - 2 then 
                     let v, m = vm (cl.Row, cl.Column)
                     vstt.GetPos(v, m)
-                    dg
-                    |> toArray2D
-                    |> Array2D.iteri setView
+                    //need to unhighlight previous one
+                    if hlcell.IsSome then 
+                        let r,c,vw = hlcell.Value
+                        dg.[r,c].View <- vw
+                    hlcell <- (cl.Row, cl.Column,dg.[cl.Row, cl.Column].View)|>Some
                     dg.[cl.Row, cl.Column].View <- viewSelCell
                     updateLV()
         

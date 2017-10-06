@@ -104,40 +104,12 @@ module Varn =
         
         { cur with Brchs = nbrs1 @ nbrs2 }
     
-    ///mvl2lines - support function that converts a move list to lines
-    let mvl2lines mvl = 
-        let rec genml ml (mh : Move list) isw = 
-            if List.isEmpty mh then List.rev ml
-            else if isw then genml ([| mh.Head.Mpgn; "" |] :: ml) mh.Tail (not isw)
-            else 
-                genml ([| ml.Head.[0]
-                          mh.Head.Mpgn |]
-                       :: ml.Tail) mh.Tail (not isw)
-        genml [] mvl true |> List.toArray
-    
-    ///mvll2lines - support function that converts a move list list to lines
-    let mvll2lines mvll = 
-        let linesl = mvll |> List.map mvl2lines
-        //find max lines length
-        let maxl = ref 0
-        linesl |> List.iter (fun lines -> 
-                      if lines.Length > !maxl then maxl := lines.Length)
-        //grow all lines to maxl
-        let gline (l : string [] []) = 
-            let ans = Array.create !maxl [| ""; "" |]
-            for i = 0 to l.Length - 1 do
-                ans.[i] <- l.[i]
-            ans
-        
-        let glinesl = linesl |> List.map gline
-        //merge two line in the list
-        let mline = Array.map2 (Array.append)
-        List.reduce mline glinesl
-    
-    ///lines - gets an array of lines for display
-    let lines cur = 
-        if List.isEmpty cur.Brchs then [||]
-        else mvll2lines cur.Brchs
+    //maxl - gets the maximum line length
+    let maxl curv =
+        let mutable ans = 0
+        curv.Brchs |> List.iter (fun lines -> 
+                      if lines.Length > ans then ans <- lines.Length)
+        ans
     
     ///mvl - gets a move list given a cur and the column and the row
     let mvl (cur, cl, rwi) = 

@@ -129,8 +129,6 @@ and VarnState(sst : SharedState) =
         if isw then wvrs
         else bvrs
     
-    member x.GetVarn() = Varn.lines curv
-    
     member x.GetPos(vr, mv) = 
         let mvl = Varn.mvl (curv, vr, mv)
         selvar <- vr
@@ -148,7 +146,7 @@ and VarnState(sst : SharedState) =
         visw <- isw
         curv <- Varn.load (nm, visw)
         let currAnls = Eng.getanls (Eng.loadLineStore(), curv)
-        (curv |> Varn.lines, currAnls) |> cchngEvt.Trigger
+        curv |> cchngEvt.Trigger
         visw |> pstt.TrigOri
     
     member x.SaveVarn() = Varn.save (curv)
@@ -160,7 +158,7 @@ and VarnState(sst : SharedState) =
         sst.SetMode(DoVarn)
         curv <- Varn.cur (nm, isw)
         let currAnls = Eng.getanls (Eng.loadLineStore(), curv)
-        (curv |> Varn.lines, currAnls) |> cchngEvt.Trigger
+        curv |> cchngEvt.Trigger
         visw |> pstt.TrigOri
         if isw then wvrs <- nm :: wvrs
         else bvrs <- nm :: bvrs
@@ -170,7 +168,7 @@ and VarnState(sst : SharedState) =
     member x.SaveAsVarn(nm) = 
         curv <- Varn.saveas (curv, nm)
         let currAnls = Eng.getanls (Eng.loadLineStore(), curv)
-        (curv |> Varn.lines, currAnls) |> cchngEvt.Trigger
+        curv |> cchngEvt.Trigger
         if visw then wvrs <- nm :: wvrs
         else bvrs <- nm :: bvrs
         visw |> vchngEvt.Trigger
@@ -185,7 +183,7 @@ and VarnState(sst : SharedState) =
         curv <- Varn.del curv selvar
         selvar <- -1
         let currAnls = Eng.getanls (Eng.loadLineStore(), curv)
-        (curv |> Varn.lines, currAnls) |> cchngEvt.Trigger
+        curv |> cchngEvt.Trigger
     
     member x.GetNextMvs() = 
         let pstt : PosnState = sst.Pstt
@@ -465,7 +463,7 @@ and SharedState() as x =
             vstt.SetVarn(Varn.add curv pstt.Mvs)
             let curv = vstt.CurVarn
             let currAnls = Eng.getanls (Eng.loadLineStore(), curv)
-            (curv |> Varn.lines, currAnls) |> vstt.TrigCurv
+            curv |> vstt.TrigCurv
             //update selected cell
             let oselvar = Varn.findsv pstt.Mvs curv.Brchs
             if oselvar.IsSome then 

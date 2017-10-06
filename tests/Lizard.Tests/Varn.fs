@@ -156,24 +156,6 @@ let ``Varn del``() =
     (fun () -> Varn.del vrn 6 |> ignore)|>shouldFail<System.IndexOutOfRangeException>
 
 [<Test>]
-let ``Varn mvl2lines``() =
-    let ans = Varn.mvl2lines mvl1
-    ans.[0].[0]|>shouldEqual "d4"
-    ans.[2].[0]|>shouldEqual "dxe6"
-
-[<Test>]
-let ``Varn mvll2lines``() =
-    let ans = Varn.mvll2lines mvll
-    ans.[0].[0]|>shouldEqual "d4"
-    ans.[0].[4]|>shouldEqual "c3"
-
-[<Test>]
-let ``Varn lines``() =
-    let ans = Varn.lines vrn
-    ans.[0].[0]|>shouldEqual "d4"
-    ans.[0].[4]|>shouldEqual "c3"
-
-[<Test>]
 let ``Varn mvl``() =
     let ans = Varn.mvl(vrn,0,3)
     ans.[0].Mpgn|>shouldEqual "d4"

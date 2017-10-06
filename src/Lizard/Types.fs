@@ -1,8 +1,6 @@
 ﻿namespace Lizard
 
-open System.Text
 open System
-open System.Windows.Forms
 
 [<AutoOpen>]
 module Types = 

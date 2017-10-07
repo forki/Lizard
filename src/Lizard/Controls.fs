@@ -4,7 +4,6 @@ open System.Drawing
 open System.Windows.Forms
 open WeifenLuo.WinFormsUI.Docking
 open SourceGrid
-open DevAge.Drawing.VisualElements
 open Dialogs
 open State
 open Lizard.Types
@@ -38,11 +37,9 @@ module Controls =
         let ltr = new RibbonButton("Linear Results", SmallImage = img "linres.png")
         //Analyse
         let arpl = new RibbonPanel("Analyse")
-        let anll = new RibbonButton("Line", Image = img "cog.png")
         let anlp = new RibbonButton("Position", Image = img "cog2.png")
         //Support
         let srpl = new RibbonPanel("Support")
-        let opt = new RibbonButton("Options", Image = img "options.png")
         let src = new RibbonButton("Source Code", MaxSizeMode = RibbonElementSizeMode.Medium, SmallImage = null)
         let cns = new RibbonButton("Conservation", MaxSizeMode = RibbonElementSizeMode.Medium, SmallImage = null)
         
@@ -96,11 +93,6 @@ module Controls =
         //show linear results
         let showlinres (e) = tstt.ShowRes(false)
         
-        //analyse line
-        let anlline (e) = 
-            let nm, isw = vl.SelectedItem.Text, wb.SelectedItem.Text = "White"
-            astt.AnlStart(nm, isw)
-        
         //analyse pos
         let anlpos (e) = astt.AnlpStart()
         
@@ -115,9 +107,9 @@ module Controls =
             tr.DropDownItems.AddRange([ rtr; ltr ])
             trpl.Items.AddRange([ rt; tr ])
             otab.Panels.Add(trpl)
-            arpl.Items.AddRange([ anll; anlp ])
+            arpl.Items.AddRange([ anlp ])
             otab.Panels.Add(arpl)
-            srpl.Items.AddRange([ opt; src; cns ])
+            srpl.Items.AddRange([ src; cns ])
             otab.Panels.Add(srpl)
             this.Tabs.Add(otab)
         
@@ -139,9 +131,7 @@ module Controls =
             rlt.Click.Add(dolintest)
             rtr.Click.Add(showranres)
             ltr.Click.Add(showlinres)
-            anll.Click.Add(anlline)
             anlp.Click.Add(anlpos)
-            opt.Click.Add(fun _ -> (new DlgOpts()).ShowDialog() |> ignore)
             src.Click.Add(fun _ -> System.Diagnostics.Process.Start("https://github.com/pbbwfc/Lizard") |> ignore)
             cns.Click.Add(fun _ -> System.Diagnostics.Process.Start("http://www.arc-trust.org/") |> ignore)
     
@@ -157,10 +147,6 @@ module Controls =
               new Panel(BackgroundImage = img "Back.jpg", Width = 8, Height = 350, Left = 366, Top = 6)
               new Panel(BackgroundImage = img "Back.jpg", Width = 342, Height = 8, Left = 32, Top = 350) ]
         
-        let bmpnl = new Panel(Width = 420, Height = 80, Left = 29, Top = 450)
-        let bmlbl = 
-            new Label(Text = "Best Move:", Dock = DockStyle.Fill, ForeColor = Color.Green, 
-                      Font = new Font(FontFamily.GenericSansSerif, 18.0f, FontStyle.Bold))
         let sqs : PictureBox [] = Array.zeroCreate 64
         let flbls : Label [] = Array.zeroCreate 8
         let rlbls : Label [] = Array.zeroCreate 8
@@ -322,11 +308,6 @@ module Controls =
             let dprom = new DlgProm(mv,isw)
             dprom.ShowDialog() |> ignore
         
-        ///update bm
-        let updbm (anl : Enganl) = 
-            let txt = "Best Move: " + anl.BmPGN + " Score: " + anl.Scr.ToString()
-            bmlbl.Text <- txt
-        
         do 
             sqs |> Array.iteri setsq
             sqs |> Array.iter sqpnl.Controls.Add
@@ -337,8 +318,6 @@ module Controls =
             rlbls |> Array.iteri rlbl
             rlbls |> Array.iter this.Controls.Add
             sqpnl |> this.Controls.Add
-            bmlbl |> bmpnl.Controls.Add
-            bmpnl |> this.Controls.Add
             pbtn |> btnpnl.Controls.Add
             fbtn |> btnpnl.Controls.Add
             btnpnl |> this.Controls.Add
@@ -347,7 +326,6 @@ module Controls =
             pstt.PsSqsChng |> Observable.add highlightsqs
             pstt.Prom |> Observable.add showprom
             pstt.Ornt |> Observable.add orient
-            pstt.BmChng |> Observable.add updbm
             pbtn.Click.Add(fun _ -> Clipboard.SetText({Lizard.PGN.Game.Blank() with Moves=pstt.Mvs}.ToString()))
             fbtn.Click.Add(fun _ -> Clipboard.SetText(pstt.Pos.ToString()))
     
@@ -533,82 +511,6 @@ module Controls =
             nextl.Click.Add(fun _ -> donav (NextL))
             nextmvs.Click.Add(mvslv)
     
-    type Anal() as this = 
-        inherit DockContent(Icon = ico "anal.ico", CloseButtonVisible = false, Text = "Analysis Results")
-        let pnl = new Panel(Dock = DockStyle.Top, Height = 30)
-        let fp = new FlowLayoutPanel(Dock = DockStyle.Fill)
-        let rtb = new RichTextBox(Dock = DockStyle.Fill)
-        let scrcb = new System.Windows.Forms.CheckBox(Text = "score", Checked = true)
-        let ln1 = new NumericUpDown(Width = 50, Value = 99m)
-        let ln0 = new NumericUpDown(Width = 50, Value = 1m)
-        let mv1 = new NumericUpDown(Width = 50, Value = 99m)
-        let mv0 = new NumericUpDown(Width = 50, Value = 1m)
-        let bcb = new System.Windows.Forms.CheckBox(Text = "Black", Checked = true)
-        let wcb = new System.Windows.Forms.CheckBox(Text = "White", Checked = true)
-        
-        let getLine (bms : Engbm []) j line = 
-            let doline = 
-                (bcb.Checked && wcb.Checked) || (bcb.Checked && not bms.[j].Bisw) || (wcb.Checked && bms.[j].Bisw)
-            if doline then 
-                if (bms.[j].Bnum >= int (mv0.Value) && bms.[j].Bnum <= int (mv1.Value)) then 
-                    if scrcb.Checked then line + " " + bms.[j].Bstr + "(" + bms.[j].Bscr.ToString() + ")"
-                    else line + " " + bms.[j].Bstr
-                else line
-            else line
-        
-        let updAnl (e) = 
-            let nl = System.Environment.NewLine
-            let currBms = astt.CurrBms
-            //clear current items
-            rtb.Clear()
-            //set heading font a write
-            let fBold = new Font("Tahoma", 8.0f, FontStyle.Bold)
-            let fNorm = new Font("Tahoma", 8.0f, FontStyle.Regular)
-            rtb.SelectionFont <- fBold
-            rtb.SelectionColor <- Color.DarkGreen
-            rtb.SelectedText <- "Missing Best Moves by Line" + nl
-            //load filtered results and write
-            let mutable maxm = 0
-            for i = 0 to currBms.Length - 1 do
-                if (i + 1 >= int (ln0.Value) && i + 1 <= int (ln1.Value)) then 
-                    let bms = currBms.[i]
-                    let mutable line = (i + 1).ToString() + "."
-                    for j = 0 to bms.Length - 1 do
-                        maxm <- max maxm bms.[j].Bnum
-                        //add items if satisfy filters
-                        line <- getLine bms j line
-                    rtb.SelectionFont <- fNorm
-                    rtb.SelectionColor <- Color.Black
-                    rtb.SelectedText <- line + nl
-            //update range values
-            mv1.Value <- min mv1.Value (decimal (maxm))
-            ln1.Value <- min ln1.Value (decimal (currBms.Length))
-        
-        //reset filters
-        let reset() = 
-            [ wcb; bcb; scrcb ] |> List.iter (fun c -> c.Checked <- true)
-            [ mv0; ln0 ] |> List.iter (fun c -> c.Value <- 1m)
-            [ mv1; ln1 ] |> List.iter (fun c -> c.Value <- 99m)
-            updAnl ("")
-        
-        do 
-            fp.Controls.Add(wcb)
-            fp.Controls.Add(bcb)
-            fp.Controls.Add(new Label(Text = "moves", TextAlign = ContentAlignment.MiddleRight))
-            fp.Controls.Add(mv0)
-            fp.Controls.Add(mv1)
-            fp.Controls.Add(new Label(Text = "lines", TextAlign = ContentAlignment.MiddleRight))
-            fp.Controls.Add(ln0)
-            fp.Controls.Add(ln1)
-            fp.Controls.Add(new Label(Text = " ", TextAlign = ContentAlignment.MiddleRight))
-            fp.Controls.Add(scrcb)
-            this.Controls.Add(rtb)
-            pnl.Controls.Add(fp)
-            this.Controls.Add(pnl)
-            [ wcb; bcb; scrcb ] |> List.iter (fun c -> c.CheckStateChanged.Add(updAnl))
-            [ mv0; mv1; ln0; ln1 ] |> List.iter (fun c -> c.ValueChanged.Add(updAnl))
-            vstt.CurChng |> Observable.add (fun _ -> reset())
-    
     type Test() as this = 
         inherit DockContent(Icon = ico "board.ico", CloseButtonVisible = false, Text = "Test")
         let pnlb = new Panel(Dock = DockStyle.Bottom, Height = 30)
@@ -710,166 +612,6 @@ module Controls =
             //events
             tstt.ResLoad |> Observable.add updRes
             cbtn.Click.Add(fun _ -> this.Hide())
-
-    type FicsData() as this = 
-        inherit DockContent(Icon = ico "ficsm.ico", Text = "FICS Data", 
-                            CloseButtonVisible = false)
-        let pnlt = new Panel(Dock = DockStyle.Top, Height = 30)
-        let flbl = 
-            new Label(Dock = DockStyle.Top, Text = "No Fics Data for Position", 
-                      TextAlign = ContentAlignment.BottomLeft)
-        let dg = 
-            new Grid(Dock = DockStyle.Fill, 
-                     BorderStyle = BorderStyle.FixedSingle, FixedRows = 1)
-        
-        //set up analysis
-        let setFdt (fd : Ficsdata) = 
-            let setfdt() = 
-                if fd.MvList.Length > 0 then 
-                    flbl.Text <- fd.ECO + ":" + fd.ECOName + "  Games:" 
-                                 + fd.NumGames.ToString() + "  FEN:" 
-                                 + fd.FENlong
-                    //load dg header
-                    dg.Rows.Clear()
-                    dg.Rows.Insert(0)
-                    dg.ColumnsCount <- 5
-                    let addhdr i txt = 
-                        let columnHeader = new Cells.ColumnHeader(txt)
-                        columnHeader.View <- viewColHeader
-                        dg.[0, i] <- columnHeader
-                    [ "Move"; "White Win"; "Draw"; "Black Win"; "Number" ] 
-                    |> List.iteri addhdr
-                    dg.Columns.[0].Width <- 70
-                    dg.Columns.[1].Width <- 70
-                    dg.Columns.[2].Width <- 70
-                    dg.Columns.[3].Width <- 70
-                    dg.Columns.[4].Width <- 70
-                    //load rows
-                    let addr i (m : Ficsmv) = 
-                        dg.Rows.Insert(i + 1)
-                        dg.[i + 1, 0] <- new SourceGrid.Cells.Cell(m.Fpgn, 
-                                                                   
-                                                                   typedefof<string>)
-                        dg.[i + 1, 0].View <- viewCell2
-                        dg.[i + 1, 1] <- new SourceGrid.Cells.Cell(m.Wpc.ToString
-                                                                       ("0.00") 
-                                                                   + "%", 
-                                                                   
-                                                                   typedefof<string>)
-                        dg.[i + 1, 1].View <- viewCell2
-                        dg.[i + 1, 2] <- new SourceGrid.Cells.Cell(m.Dpc.ToString
-                                                                       ("0.00") 
-                                                                   + "%", 
-                                                                   
-                                                                   typedefof<string>)
-                        dg.[i + 1, 2].View <- viewCell2
-                        dg.[i + 1, 3] <- new SourceGrid.Cells.Cell(m.Bpc.ToString
-                                                                       ("0.00") 
-                                                                   + "%", 
-                                                                   
-                                                                   typedefof<string>)
-                        dg.[i + 1, 3].View <- viewCell2
-                        dg.[i + 1, 4] <- new SourceGrid.Cells.Cell(m.Fnum.ToString
-                                                                       (), 
-                                                                   
-                                                                   typedefof<string>)
-                        dg.[i + 1, 4].View <- viewCell2
-                    fd.MvList
-                    |> Array.mapi addr
-                    |> ignore
-                else 
-                    flbl.Text <- "No Fics Data for Position: " + fd.FENlong
-                    dg.Rows.Clear()
-            if (this.InvokeRequired) then 
-                try 
-                    this.Invoke(MethodInvoker(fun () -> setfdt())) |> ignore
-                with _ -> ()
-            else setfdt()
-        
-        do 
-            this.Controls.Add(dg)
-            pnlt.Controls.Add(flbl)
-            this.Controls.Add(pnlt)
-            //events
-            pstt.FdtChng |> Observable.add setFdt
-    
-    type LineAnal() as this = 
-        inherit DockContent(Icon = ico "cog.ico", Text = "Line Analysis", 
-                            CloseButtonVisible = false)
-        let pnlt = new Panel(Dock = DockStyle.Top, Height = 30)
-        let albl = 
-            new Label(Dock = DockStyle.Top, Text = "Stopped", 
-                      TextAlign = ContentAlignment.BottomLeft)
-        let sbtn = 
-            new System.Windows.Forms.Button(Text = "Stop", 
-                                            Dock = DockStyle.Right)
-        let dg = 
-            new Grid(Dock = DockStyle.Fill, 
-                     BorderStyle = BorderStyle.FixedSingle, FixedRows = 1)
-        
-        //set up analysis
-        let setAnl start = 
-            let setanl() = 
-                if start then 
-                    dg.Rows.Clear()
-                    dg.Rows.Insert(0)
-                    dg.ColumnsCount <- 4
-                    let addhdr i txt = 
-                        let columnHeader = new Cells.ColumnHeader(txt)
-                        columnHeader.View <- viewColHeader
-                        dg.[0, i] <- columnHeader
-                    [ "Time"; "Message"; "Line"; "Depth" ] |> List.iteri addhdr
-                    dg.Columns.[0].Width <- 60
-                    dg.Columns.[1].Width <- 700
-                    dg.Columns.[2].Width <- 400
-                    dg.Columns.[3].Width <- 40
-                    this.Activate()
-            if (this.InvokeRequired) then 
-                try 
-                    this.Invoke(MethodInvoker(fun () -> setanl())) |> ignore
-                with _ -> ()
-            else setanl()
-        
-        //set header
-        let setHdr msg = 
-            if (this.InvokeRequired) then 
-                try 
-                    this.Invoke(MethodInvoker(fun () -> albl.Text <- msg)) 
-                    |> ignore
-                with _ -> ()
-            else albl.Text <- msg
-        
-        //add Message
-        let addMsg (msg, ln, dpth) = 
-            let addmsg() = 
-                dg.Rows.Insert(1)
-                dg.[1, 0] <- new SourceGrid.Cells.Cell(System.DateTime.Now.ToString
-                                                           ("T"), 
-                                                       typedefof<string>)
-                dg.[1, 0].View <- viewCell2
-                dg.[1, 1] <- new SourceGrid.Cells.Cell(msg, typedefof<string>)
-                dg.[1, 1].View <- viewCell2
-                dg.[1, 2] <- new SourceGrid.Cells.Cell(ln, typedefof<string>)
-                dg.[1, 2].View <- viewCell2
-                dg.[1, 3] <- new SourceGrid.Cells.Cell(dpth.ToString(), 
-                                                       typedefof<string>)
-                dg.[1, 3].View <- viewCell2
-            if (this.InvokeRequired) then 
-                try 
-                    this.Invoke(MethodInvoker(fun () -> addmsg())) |> ignore
-                with _ -> ()
-            else addmsg()
-        
-        do 
-            this.Controls.Add(dg)
-            pnlt.Controls.Add(albl)
-            pnlt.Controls.Add(sbtn)
-            this.Controls.Add(pnlt)
-            //events
-            astt.AnlChng |> Observable.add setAnl
-            astt.AnlHeadChng |> Observable.add setHdr
-            astt.AnlMsg |> Observable.add addMsg
-            sbtn.Click.Add(fun _ -> astt.AnlStop())
 
     type PosAnal() as this = 
         inherit DockContent(Icon = ico "cog2.ico", Text = "Analyse Position", 

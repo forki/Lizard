@@ -67,40 +67,6 @@ module Types =
           Isw : bool
           Brchs : Line1 list }
     
-    //test - records of tests
-    type TestDet = 
-        { Mvl : Move list
-          Mv : Move
-          Vnname : string
-          Status : string }
-    
-    //tstres - test result
-    type Tstres = 
-        { Vname : string
-          Visw : bool
-          Dte : DateTime
-          Res : int }
-    
-    //linstr - store of analysis
-    type Linstr = System.Collections.Generic.Dictionary<string, string>
-    
-    //enganl - record of engine analysis results
-    type Enganl = 
-        { Depth : int
-          Scr : int
-          Bestmv : string
-          Resp : string
-          BmPGN : string
-          RmPGN : string }
-    
-    //engbm - record of engine best moves
-    type Engbm = 
-        { Bnum : int
-          Bisw : bool
-          BPGN : string
-          Bstr : string
-          Bscr : int }
-    
     //options - record of all options
     type Options = 
         { Opnfol : string
@@ -113,20 +79,3 @@ module Types =
           Emaxdepth : int
           Elog : bool }
     
-    //ficsdata
-    type Ficsmv = 
-        { Fpgn : string
-          Wpc : float
-          Dpc : float
-          Bpc : float
-          Fnum : int }
-    
-    type Ficsdata = 
-        { FENlong : string
-          ECO : string
-          ECOName : string
-          NumGames : int
-          MvList : Ficsmv [] }
-    
-    //fdbstr - store of Fics DB data
-    type Fdbstr = System.Collections.Generic.Dictionary<string, Ficsdata>

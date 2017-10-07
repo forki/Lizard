@@ -124,15 +124,15 @@ module Varn =
     //STORAGE elements
     let json = FsPickler.CreateJsonSerializer()
     //set up paths
-    let opts = Opts.load()
+    let opnfol = Path.Combine(Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location), "Openings")
     
     let wfol = 
-        let ans = Path.Combine(opts.Opnfol, "White")
+        let ans = Path.Combine(opnfol, "White")
         Directory.CreateDirectory(ans) |> ignore
         ans
     
     let bfol = 
-        let ans = Path.Combine(opts.Opnfol, "Black")
+        let ans = Path.Combine(opnfol, "Black")
         Directory.CreateDirectory(ans) |> ignore
         ans
     

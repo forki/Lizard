@@ -73,8 +73,6 @@ let mvll = [mvl1;mvl2;mvl3;mvl4]
 let mvl5 = getmvl beplPgn2
 let mvl6 = getmvl beplPgn3
 let vrn = {Varn.emp with Brchs=mvll}
-let opts = Opts.load()
-Opts.save {opts with Opnfol="I:\\LizData\\Openings"}
 
 [<Test>]
 let ``Varn cur``() =

@@ -7,11 +7,10 @@ open MBrace.FsPickler.Json
 module Test = 
     //STORAGE elements
     //set up paths
-    let opts = Opts.load()
     let json = FsPickler.CreateJsonSerializer()
     
     let tfol = 
-        let ans = opts.Tstfol
+        let ans = Path.Combine(Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location), "Test")
         Directory.CreateDirectory(ans) |> ignore
         ans
     
@@ -202,11 +201,9 @@ module Test =
             |> List.toArray
             |> Array.concat
         
-        //load settings
-        let opts = Opts.load()
         //filter to remove early positions
         let alltestsfilt1 = 
-            alltests |> Array.filter (fun t -> t.Mvl.Length > opts.Rskip * 2)
+            alltests |> Array.filter (fun t -> t.Mvl.Length > 4)
         
         //reset if no tests left
         let alltestsfilt = 
@@ -218,8 +215,8 @@ module Test =
             new System.Collections.Generic.List<TestDet>(alltestsfilt)
         
         let num = 
-            if alltestsfilt.Length < opts.Rnum then alltestsfilt.Length
-            else opts.Rnum
+            if alltestsfilt.Length < 10 then alltestsfilt.Length
+            else 10
         
         // gets random set
         let ans = Array.zeroCreate num
@@ -232,8 +229,6 @@ module Test =
     
     // fromNameLin - generate set of test positions given name of variation and whether white
     let fromNameLin vnname isw = 
-        // get settings
-        let opts = Opts.load()
         // get all lines
         let vn = Lizard.Varn.load (vnname, isw)
         
@@ -253,8 +248,8 @@ module Test =
         let alltestgenl = new System.Collections.Generic.List<TestDet list>(tstlst)
         
         let num = 
-            if tstlst.Length < opts.Lnum then tstlst.Length
-            else opts.Lnum
+            if tstlst.Length < 10 then tstlst.Length
+            else 10
         
         // gets random set
         let tstlstsub = Array.zeroCreate num
@@ -272,7 +267,7 @@ module Test =
         
         //filter to remove early positions
         let tstarrfilt1 = 
-            tstarr |> Array.filter (fun t -> t.Mvl.Length > opts.Lskip * 2)
+            tstarr |> Array.filter (fun t -> t.Mvl.Length > 4)
         
         //reset if no tests left
         let tstarrfilt = 

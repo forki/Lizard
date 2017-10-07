@@ -16,24 +16,18 @@ type PosnState(sst : SharedState) =
     let mutable pos = Pos.Start()
     let mutable mvs = []
     let mutable pssqs : int list = []
-    let mutable cfdt = FcsDt.empfdb
-    let mutable canl = Eng.empanl
     //Events
     let pchngEvt = new Event<_>()
     let mchngEvt = new Event<_>()
-    let bmchngEvt = new Event<_>()
     let promEvt = new Event<_>()
     let pssqsEvt = new Event<_>()
     let orntEvt = new Event<_>()
-    let fdtchngEvt = new Event<_>()
     //publish
     member x.PosChng = pchngEvt.Publish
     member x.MvsChng = mchngEvt.Publish
-    member x.BmChng = bmchngEvt.Publish
     member x.Prom = promEvt.Publish
     member x.PsSqsChng = pssqsEvt.Publish
     member x.Ornt = orntEvt.Publish
-    member x.FdtChng = fdtchngEvt.Publish
     
     //members
     member x.Pos 
@@ -61,14 +55,6 @@ type PosnState(sst : SharedState) =
             pssqs <- value
             pssqs |> pssqsEvt.Trigger
     
-    member x.SetCanl() = 
-        canl <- x.MvsStr |> Eng.getanl (Eng.loadLineStore())
-        canl |> bmchngEvt.Trigger
-    
-    member x.SetCfdt() = 
-        cfdt <- x.MvsStr |> FcsDt.getfdb (FcsDt.loadFicsDbStore())
-        cfdt |> fdtchngEvt.Trigger
-    
     member x.Move(mfrom, mto) = 
         if pssqs.Length > 0 then 
             let mv = pos.GetMvFT(mfrom, mto)
@@ -77,20 +63,14 @@ type PosnState(sst : SharedState) =
                 x.Pos.DoMv mv
                 x.Pos <- x.Pos
                 x.Mvs <- x.Mvs @ [ mv ]
-                x.SetCanl()
-                x.SetCfdt()
                 x.PsSqs <- []
                 sst.DoMode()
             else 
                 pos |> pchngEvt.Trigger
-                x.SetCanl()
-                x.SetCfdt()
                 x.PsSqs <- []
     
     member x.Promote(mv) = 
         x.Pos.DoMv mv
-        x.SetCanl()
-        x.SetCfdt()
         sst.DoMode()
     
     member x.GetPossSqs(mfrom) = x.PsSqs <- pos.GetPossSqs(mfrom)
@@ -135,8 +115,6 @@ and VarnState(sst : SharedState) =
         let pstt : PosnState = sst.Pstt
         pstt.Mvs <- mvl
         pstt.Pos <- Pos.FromMoves(mvl)
-        pstt.SetCanl()
-        pstt.SetCfdt()
     
     member x.OpenVarn(nm, isw) = 
         let pstt : PosnState = sst.Pstt
@@ -145,7 +123,6 @@ and VarnState(sst : SharedState) =
         sst.SetMode(DoVarn)
         visw <- isw
         curv <- Varn.load (nm, visw)
-        let currAnls = Eng.getanls (Eng.loadLineStore(), curv)
         curv |> cchngEvt.Trigger
         visw |> pstt.TrigOri
     
@@ -157,7 +134,6 @@ and VarnState(sst : SharedState) =
         pstt.Mvs <- []
         sst.SetMode(DoVarn)
         curv <- Varn.cur (nm, isw)
-        let currAnls = Eng.getanls (Eng.loadLineStore(), curv)
         curv |> cchngEvt.Trigger
         visw |> pstt.TrigOri
         if isw then wvrs <- nm :: wvrs
@@ -167,7 +143,6 @@ and VarnState(sst : SharedState) =
     
     member x.SaveAsVarn(nm) = 
         curv <- Varn.saveas (curv, nm)
-        let currAnls = Eng.getanls (Eng.loadLineStore(), curv)
         curv |> cchngEvt.Trigger
         if visw then wvrs <- nm :: wvrs
         else bvrs <- nm :: bvrs
@@ -182,7 +157,6 @@ and VarnState(sst : SharedState) =
     member x.DelLine() = 
         curv <- Varn.del curv selvar
         selvar <- -1
-        let currAnls = Eng.getanls (Eng.loadLineStore(), curv)
         curv |> cchngEvt.Trigger
     
     member x.GetNextMvs() = 
@@ -194,8 +168,6 @@ and VarnState(sst : SharedState) =
         let move = pstt.Pos.GetMv(mv)
         pstt.Pos.DoMv(move)
         pstt.Mvs <- pstt.Mvs @ [ move ]
-        pstt.SetCanl()
-        pstt.SetCfdt()
         let oselvar = Varn.findsv pstt.Mvs curv.Brchs
         if oselvar.IsSome then 
             selvar <- oselvar.Value
@@ -293,120 +265,21 @@ and AnalState(sst : SharedState) =
     let mutable lastmsg1 = ""
     let mutable lastmsg2 = ""
     //Events
-    let achngEvt = new Event<_>()
-    let ahchngEvt = new Event<_>()
-    let amsgEvt = new Event<_>()
     let apchngEvt = new Event<_>()
     let ahpchngEvt = new Event<_>()
     let apmsgEvt = new Event<_>()
     
-    //main recursive function
-    let rec getAnswer (processBM, answer) linestore (vn : string []) (opts, eng, nm) = 
-        let send msg = Game.Send(msg, proc)
-        if (processBM) then Eng.procbm (linestore, ln, mvct, answer, [ lastmsg; lastmsg1; lastmsg2 ])
-        Eng.saveLineStore (linestore)
-        let lnctnew = 
-            if mvct = ln.Trim().Split(' ').Length then lnct + 1
-            else -1
-        if lnctnew = vn.Length then 
-            if (dpth = opts.Emaxdepth) then 
-                send ("stop")
-                send ("")
-                let text = "Finished processing variation " + nm + " to depth " + dpth.ToString()
-                text |> ahchngEvt.Trigger
-            else 
-                ln <- vn.[0].Trim()
-                lnct <- 0
-                let mvs = ln.Split(' ')
-                mvct <- min (mvs.Length - 1) 5
-                dpth <- dpth + 1
-                //clear for next line
-                Eng.hdr (eng, ln, lnct, mvct, dpth) |> ahchngEvt.Trigger
-                if (Eng.alreadyDone (linestore, Eng.str2str (ln, mvct), dpth)) then 
-                    getAnswer (false, "") linestore vn (opts, eng, nm)
-                else Game.ComputeAnswer(Eng.str2str (ln, mvct), dpth, proc)
-        else 
-            if lnctnew <> -1 then 
-                let mvs = vn.[lnctnew].Trim().Split(' ')
-                mvct <- min (mvs.Length - 1) 5
-                ln <- vn.[lnctnew].Trim()
-                lnct <- lnctnew
-            else mvct <- mvct + 1
-            //clear for next line
-            Eng.hdr (eng, ln, lnct, mvct, dpth) |> ahchngEvt.Trigger
-            //do next one
-            if (Eng.alreadyDone (linestore, Eng.str2str (ln, mvct), dpth)) then 
-                getAnswer (false, "") linestore vn (opts, eng, nm)
-            else Game.ComputeAnswer(Eng.str2str (ln, mvct), dpth, proc)
-    
     //publish
-    member x.AnlChng = achngEvt.Publish
-    member x.AnlHeadChng = ahchngEvt.Publish
-    member x.AnlMsg = amsgEvt.Publish
     member x.AnlpChng = apchngEvt.Publish
     member x.AnlpHeadChng = ahpchngEvt.Publish
     member x.AnlpMsg = apmsgEvt.Publish
     
     //members
-    member x.CurrBms = 
-        let vstt : VarnState = sst.Vstt
-        let curv = vstt.CurVarn
-        let strs = Varn.cur2txt (curv)
-        let vnpsns = curv.Brchs
-        Seq.map2 (Eng.strmvl2bms (Eng.loadLineStore())) strs vnpsns |> Seq.toArray
-    
-    //Analyse Line
-    member x.AnlStart(nm, isw) = 
-        proc <- new System.Diagnostics.Process()
-        let vn = Varn.loadtxta (nm, isw)
-        let linestore = Eng.loadLineStore()
-        let opts = Opts.load()
-        let eng = "stockfish.exe"
-        
-        //p_out
-        let pOut (e : System.Diagnostics.DataReceivedEventArgs) = 
-            if not (e.Data = null || e.Data = "") then 
-                let line = e.Data.ToString().Trim()
-                if (opts.Elog) then Game.Log("--> " + line)
-                lastmsg2 <- lastmsg1
-                lastmsg1 <- lastmsg
-                lastmsg <- line
-                // ANALYZE THE ANSWER...
-                if (line.StartsWith("bestmove")) then 
-                    (lastmsg2, Eng.str2str (ln, mvct), dpth) |> amsgEvt.Trigger
-                    (lastmsg1, Eng.str2str (ln, mvct), dpth) |> amsgEvt.Trigger
-                    (line, Eng.str2str (ln, mvct), dpth) |> amsgEvt.Trigger
-                    let token = line.Split([| ' ' |])
-                    if token.Length > 1 then getAnswer (true, token.[1]) linestore vn (opts, eng, nm)
-        proc.OutputDataReceived.Add(pOut)
-        //Start process
-        Game.SetUpPrc proc eng
-        //set mutables
-        ln <- vn.[0].Trim()
-        let mvs = ln.Split(' ')
-        lnct <- 0
-        mvct <- min (mvs.Length - 1) 5
-        dpth <- 10
-        // call calcs
-        if (Eng.alreadyDone (linestore, Eng.str2str (ln, mvct), dpth)) then 
-            getAnswer (false, "") linestore vn (opts, eng, nm)
-        else Game.ComputeAnswer(Eng.str2str (ln, mvct), dpth, proc)
-        isanl <- true
-        isanl |> achngEvt.Trigger
-        Eng.hdr (eng, ln, lnct, mvct, dpth) |> ahchngEvt.Trigger
-    
-    member x.AnlStop() = 
-        if proc <> null then proc.Kill()
-        isanl <- false
-        isanl |> achngEvt.Trigger
-        "Stopped" |> ahchngEvt.Trigger
-    
     //Analyse Pos
     member x.AnlpStart() = 
         procp <- new System.Diagnostics.Process()
-        let opts = Opts.load()
         let eng = "stockfish.exe"
-        let send msg = Game.Send(msg, procp)
+        let send msg = Eng.Send(msg, procp)
         
         //p_out
         let pOut (e : System.Diagnostics.DataReceivedEventArgs) = 
@@ -415,11 +288,11 @@ and AnalState(sst : SharedState) =
                 if not (msg.StartsWith("info") && not (msg.Contains(" cp "))) then msg |> apmsgEvt.Trigger
         procp.OutputDataReceived.Add(pOut)
         //Start process
-        Game.SetUpPrc procp eng
+        Eng.SetUpPrc procp eng
         // call calcs
         // need to send game position moves as UCI
         let pstt = sst.Pstt
-        Game.ComputeAnswer(pstt.MvsStr, 99, procp)
+        Eng.ComputeAnswer(pstt.MvsStr, 99, procp)
         isanl <- true
         isanl |> apchngEvt.Trigger
         (eng + " - " + (pstt.MvsStr)) |> ahpchngEvt.Trigger
@@ -462,7 +335,6 @@ and SharedState() as x =
             let curv = vstt.CurVarn
             vstt.SetVarn(Varn.add curv pstt.Mvs)
             let curv = vstt.CurVarn
-            let currAnls = Eng.getanls (Eng.loadLineStore(), curv)
             curv |> vstt.TrigCurv
             //update selected cell
             let oselvar = Varn.findsv pstt.Mvs curv.Brchs
@@ -483,9 +355,6 @@ and SharedState() as x =
             else tstt.SetTest(tstt.Num, { tstt.Tests.[tstt.Num] with Status = "Failed" })
             (tstt.Num, tstt.Tests.[tstt.Num].Status) |> tstt.TrigRes
     
-    member x.GetOpts() = Opts.load()
-    member x.SaveOpts(opts) = Opts.save (opts)
-
 module State = 
     let stt = new SharedState()
     let pstt = stt.Pstt

@@ -1,0 +1,4 @@
+FSharp.Core
+FsPickler
+FsPickler.Json
+Newtonsoft.Json

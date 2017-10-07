@@ -138,12 +138,9 @@
     <Compile Include="Types.fs" />
     <Compile Include="Pos.fs" />
     <Compile Include="PGN.fs" />
-    <Compile Include="Opts.fs" />
     <Compile Include="Varn.fs" />
     <Compile Include="Test.fs" />
     <Compile Include="Eng.fs" />
-    <Compile Include="Game.fs" />
-    <Compile Include="FcsDt.fs" />
     <Compile Include="Shortcuts.fs" />
     <Compile Include="State.fs" />
     <Compile Include="Dialogs.fs" />
@@ -153,9 +150,6 @@
     <None Include="App.config" />
     <Compile Include="Program.fs" />
     <None Include="paket.references" />
-    <None Include="Options.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
     <None Include="Script1.fsx" />
     <None Include="stockfish.exe">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>

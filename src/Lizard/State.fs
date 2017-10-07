@@ -52,7 +52,7 @@ type PosnState(sst : SharedState) =
         if List.isEmpty x.Mvs then ""
         else 
             x.Mvs
-            |> List.map (fun (m : Move) -> m.UCI)
+            |> List.map (fun (m : Move1) -> m.UCI)
             |> List.reduce (fun a b -> a + " " + b)
     
     member x.PsSqs 

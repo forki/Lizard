@@ -53,7 +53,7 @@ module Eng =
         else empanl
     
     /// getanls - gets engine analyses given varn
-    let getanls (ls : Linstr, (vn : Varn1)) = 
+    let getanls (ls : Linstr, (vn : Varn)) = 
         let strs = Varn.cur2txt vn
         strs |> Array.map (getanl ls)
     
@@ -132,7 +132,7 @@ module Eng =
                     addLineStore (ls, strmvs, depth + "," + scr + "," + answer + "," + resp + "," + bmPgn + "," + rmPgn)
     
     //general engine analysis for a variation
-    let rec getbms (bms : Engbm list) (len, bw, num, cpsn) (mvl : Move list) (str : string) (ls : Linstr) = 
+    let rec getbms (bms : Engbm list) (len, bw, num, cpsn) (mvl : Move1 list) (str : string) (ls : Linstr) = 
         if len >= str.Length - 5 then List.rev bms
         else 
             let curstr = str.Substring(0, len)
@@ -164,12 +164,12 @@ module Eng =
                           Bscr = bscr }
                         :: bms) (nlen, nbw, nnum, []) mvl.Tail str ls
     
-    let strmvl2bms (ls : Linstr) (str : string) (l : Line) = 
+    let strmvl2bms (ls : Linstr) (str : string) (l : Line1) = 
         let lbms = getbms [] (4, "B", 1, []) l.Mvs.Tail str ls
         lbms |> List.toArray
     
     /// extlin - extends line given varn, enganls and selvar
-    let extlin ((vn : Varn1), (ea : Enganl []), (s : int)) = 
+    let extlin ((vn : Varn), (ea : Enganl []), (s : int)) = 
         let barr = vn.Brchs |> List.toArray
         let selb = barr.[s]
         let sele = ea.[s]
@@ -183,7 +183,7 @@ module Eng =
           vn with Brchs = List.ofArray (barr) }
     
     /// extall - extends all lines given varn, enganls
-    let extall ((vn : Varn1), (ea : Enganl [])) = 
+    let extall ((vn : Varn), (ea : Enganl [])) = 
         let barr = vn.Brchs |> List.toArray
         for s = 0 to barr.Length - 1 do
             let selb = barr.[s]

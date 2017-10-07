@@ -17,15 +17,15 @@ module Varn =
           Brchs = [] }
     
     ///findsv - finds the selvar given move list and set of move lists
-    let findsv (mb : Move list) (curbs : Line list) = 
+    let findsv (mb : Move1 list) (curbs : Line1 list) = 
         //function to find match
-        let mtch (l : Line) = l.Mvs.Length >= mb.Length && l.Mvs.[0..mb.Length - 1] = mb
+        let mtch (l : Line1) = l.Mvs.Length >= mb.Length && l.Mvs.[0..mb.Length - 1] = mb
         curbs |> List.tryFindIndex mtch
     
     ///findnmvs - finds the next moves given move list and set of move lists
-    let findnmvs (mb : Move list) (curbs : Line list) = 
+    let findnmvs (mb : Move1 list) (curbs : Line1 list) = 
         //function to find match with extra move
-        let mtch (l : Line) = l.Mvs.Length > mb.Length && l.Mvs.[0..mb.Length - 1] = mb
+        let mtch (l : Line1) = l.Mvs.Length > mb.Length && l.Mvs.[0..mb.Length - 1] = mb
         curbs
         |> List.filter mtch
         |> List.map (fun l -> l.Mvs.[mb.Length])
@@ -38,7 +38,7 @@ module Varn =
         else smmv m1.Tail m2.Tail (no + 1)
     
     //function to find index of best match
-    let rec fndidx (rear:Line list) cidx no idx mb = 
+    let rec fndidx (rear:Line1 list) cidx no idx mb = 
         if List.isEmpty rear then idx
         else 
             let curb = rear.Head
@@ -55,7 +55,7 @@ module Varn =
             fndidx rear.Tail (cidx + 1) nno nidx mb
     
     ///mrgbrch - merges a new branch into a list of branches
-    let mrgbrch (mb : Move list) (curbs : Line list) = 
+    let mrgbrch (mb : Move1 list) (curbs : Line1 list) = 
         // either same as existing branch and then either do nothing or replace
         // or extra branch and need to put next to the nearest
         
@@ -63,7 +63,7 @@ module Varn =
         let rec addex front rear fnd = 
             if List.isEmpty rear then front, fnd
             else 
-                let curb:Move list = (rear.Head).Mvs
+                let curb:Move1 list = (rear.Head).Mvs
                 if curb.Length < mb.Length && curb = mb.[0..curb.Length - 1] then 
                     (front @ {Mvs=mb} :: rear.Tail), true
                 elif curb.Length >= mb.Length && curb.[0..mb.Length - 1] = mb.[0..mb.Length - 1]  then 
@@ -84,7 +84,7 @@ module Varn =
             frnt @ {Mvs=mb} :: rear
     
     ///add - updates the variation with moves from a game move history
-    let add (cur : Varn1) (mvl : Move list) = 
+    let add (cur : Varn) (mvl : Move1 list) = 
         //don't add if wrong colour
         if mvl.Length = 0 then cur
         elif List.isEmpty cur.Brchs then { cur with Brchs = [ {Mvs=mvl} ] }
@@ -159,12 +159,12 @@ module Varn =
         |> List.toArray
     
     ///save - serializes the varn to a file in binary
-    let save (cur : Varn1) = 
+    let save (cur : Varn) = 
         try 
             let pfn = 
                 Path.Combine((if cur.Isw then wfol
                               else bfol), cur.Name + ".json")
-            let str = json.PickleToString<Varn1>(cur)
+            let str = json.PickleToString<Varn>(cur)
             File.WriteAllText(pfn, str)
             "Save successful for variation: " + cur.Name
         with e -> "Save failed with error: " + e.ToString()
@@ -182,7 +182,7 @@ module Varn =
             Path.Combine((if isw then wfol
                           else bfol), nm + ".json")
         let str = File.ReadAllText(pfn)
-        json.UnPickleOfString<Varn1>(str)
+        json.UnPickleOfString<Varn>(str)
         
     ///load - deserializes to a varn from a file or files 
     let loada (nm, isw) = 

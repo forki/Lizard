@@ -51,7 +51,7 @@ type Pos(isqs : char [], iisw : bool) =
     static member Start() = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w" |> Pos.FromString
     
     /// loads Pos given a Move list
-    static member FromMoves(imvl : Move list) = 
+    static member FromMoves(imvl : Move1 list) = 
         let rec domvs mvl (pos : Pos) = 
             if List.isEmpty mvl then pos
             else 
@@ -85,11 +85,11 @@ type Pos(isqs : char [], iisw : bool) =
     
     /// Make a move
     member x.Mv(s : string) = 
-        let mv : Move = x.GetMv s
+        let mv : Move1 = x.GetMv s
         mv |> x.DoMv
     
     /// Make a move
-    member x.DoMv(mv : Move) = 
+    member x.DoMv(mv : Move1) = 
         x.IsW <- not x.IsW
         let c = x.Sqs.[mv.Mfrom]
         x.Sqs.[mv.Mfrom] <- ' '
@@ -143,22 +143,46 @@ type Pos(isqs : char [], iisw : bool) =
                     { Mfrom = mto + 8
                       Mto = mto
                       Mtyp = Standard
-                      Mpgn = mv }
+                      Mpgn = mv 
+                      Meval = Normal
+                      Scr10 = 0
+                      Scr25 = 0 
+                      Bresp = ""
+                      ECO = ""
+                      FicsPc = 0.0}
                 else 
                     { Mfrom = mto + 16
                       Mto = mto
                       Mtyp = Standard
-                      Mpgn = mv }
+                      Mpgn = mv 
+                      Meval = Normal
+                      Scr10 = 0
+                      Scr25 = 0 
+                      Bresp = ""
+                      ECO = ""
+                      FicsPc = 0.0}
             else if x.Sqs.[mto - 8] = 'p' then 
-                { Mfrom = mto - 8
-                  Mto = mto
-                  Mtyp = Standard
-                  Mpgn = mv }
+                {   Mfrom = mto - 8
+                    Mto = mto
+                    Mtyp = Standard
+                    Mpgn = mv 
+                    Meval = Normal
+                    Scr10 = 0
+                    Scr25 = 0 
+                    Bresp = ""
+                    ECO = ""
+                    FicsPc = 0.0}
             else 
-                { Mfrom = mto - 16
-                  Mto = mto
-                  Mtyp = Standard
-                  Mpgn = mv }
+                {   Mfrom = mto - 16
+                    Mto = mto
+                    Mtyp = Standard
+                    Mpgn = mv 
+                    Meval = Normal
+                    Scr10 = 0
+                    Scr25 = 0 
+                    Bresp = ""
+                    ECO = ""
+                    FicsPc = 0.0}
         //simple piece move e.g. Nf3
         | SimpleMove(p, sq) -> 
             let mto = Ref.SqDct.[sq]
@@ -174,19 +198,31 @@ type Pos(isqs : char [], iisw : bool) =
                 |> Array.map fst
             
             if mfs.Length = 1 then 
-                { Mfrom = mfs.[0]
-                  Mto = mto
-                  Mtyp = Standard
-                  Mpgn = mv }
+                {   Mfrom = mfs.[0]
+                    Mto = mto
+                    Mtyp = Standard
+                    Mpgn = mv 
+                    Meval = Normal
+                    Scr10 = 0
+                    Scr25 = 0 
+                    Bresp = ""
+                    ECO = ""
+                    FicsPc = 0.0}
             else 
                 match pc with
                 | 'N' | 'n' -> 
                     let ms = mfs |> Array.filter (isnmv mto)
                     if ms.Length = 1 then 
-                        { Mfrom = ms.[0]
-                          Mto = mto
-                          Mtyp = Standard
-                          Mpgn = mv }
+                        {   Mfrom = ms.[0]
+                            Mto = mto
+                            Mtyp = Standard
+                            Mpgn = mv 
+                            Meval = Normal
+                            Scr10 = 0
+                            Scr25 = 0 
+                            Bresp = ""
+                            ECO = ""
+                            FicsPc = 0.0}
                     else fl()
                 //filter out moves that lead to check
                 //                        let isok m = 
@@ -253,10 +289,16 @@ type Pos(isqs : char [], iisw : bool) =
                 | 'B' | 'b' -> 
                     let fmfs = mfs |> Array.filter (samedg mto)
                     if fmfs.Length = 1 then 
-                        { Mfrom = fmfs.[0]
-                          Mto = mto
-                          Mtyp = Standard
-                          Mpgn = mv }
+                        {   Mfrom = fmfs.[0]
+                            Mto = mto
+                            Mtyp = Standard
+                            Mpgn = mv 
+                            Meval = Normal
+                            Scr10 = 0
+                            Scr25 = 0 
+                            Bresp = ""
+                            ECO = ""
+                            FicsPc = 0.0}
                     else fl()
                 | 'Q' | 'q' -> 
                     let fmfs = mfs |> Array.filter (samedgfr mto)
@@ -264,7 +306,13 @@ type Pos(isqs : char [], iisw : bool) =
                         { Mfrom = fmfs.[0]
                           Mto = mto
                           Mtyp = Standard
-                          Mpgn = mv }
+                          Mpgn = mv 
+                          Meval = Normal
+                          Scr10 = 0
+                          Scr25 = 0 
+                          Bresp = ""
+                          ECO = ""
+                          FicsPc = 0.0}
                     else 
                         let rec getval fl = 
                             if List.isEmpty fl then 
@@ -303,14 +351,26 @@ type Pos(isqs : char [], iisw : bool) =
                         { Mfrom = mfrom
                           Mto = mto
                           Mtyp = Standard
-                          Mpgn = mv }
+                          Mpgn = mv 
+                          Meval = Normal
+                          Scr10 = 0
+                          Scr25 = 0 
+                          Bresp = ""
+                          ECO = ""
+                          FicsPc = 0.0}
                 | 'R' | 'r' -> 
                     let fmfs = mfs |> Array.filter (samefr mto)
                     if fmfs.Length = 1 then 
                         { Mfrom = fmfs.[0]
                           Mto = mto
                           Mtyp = Standard
-                          Mpgn = mv }
+                          Mpgn = mv 
+                          Meval = Normal
+                          Scr10 = 0
+                          Scr25 = 0 
+                          Bresp = ""
+                          ECO = ""
+                          FicsPc = 0.0}
                     else 
                         let rec getvals ol fl = 
                             if List.isEmpty fl then ol
@@ -341,29 +401,59 @@ type Pos(isqs : char [], iisw : bool) =
                             { Mfrom = mfroms.[0]
                               Mto = mto
                               Mtyp = Standard
-                              Mpgn = mv }
+                              Mpgn = mv 
+                              Meval = Normal
+                              Scr10 = 0
+                              Scr25 = 0 
+                              Bresp = ""
+                              ECO = ""
+                              FicsPc = 0.0}
                 | _ -> fl()
         | Castle(c) -> 
             if c = 'K' && x.IsW then 
                 { Mfrom = 60
                   Mto = 62
                   Mtyp = CasK
-                  Mpgn = mv }
+                  Mpgn = mv 
+                  Meval = Normal
+                  Scr10 = 0
+                  Scr25 = 0 
+                  Bresp = ""
+                  ECO = ""
+                  FicsPc = 0.0}
             elif c = 'K' then 
                 { Mfrom = 4
                   Mto = 6
                   Mtyp = CasK
-                  Mpgn = mv }
+                  Mpgn = mv 
+                  Meval = Normal
+                  Scr10 = 0
+                  Scr25 = 0 
+                  Bresp = ""
+                  ECO = ""
+                  FicsPc = 0.0}
             elif x.IsW then 
                 { Mfrom = 60
                   Mto = 58
                   Mtyp = CasQ
-                  Mpgn = mv }
+                  Mpgn = mv 
+                  Meval = Normal
+                  Scr10 = 0
+                  Scr25 = 0 
+                  Bresp = ""
+                  ECO = ""
+                  FicsPc = 0.0}
             else 
                 { Mfrom = 4
                   Mto = 2
                   Mtyp = CasQ
-                  Mpgn = mv }
+                  Mpgn = mv 
+                  Meval = Normal
+                  Scr10 = 0
+                  Scr25 = 0 
+                  Bresp = ""
+                  ECO = ""
+                  FicsPc = 0.0}
         //pawn capture like exd6
         | PawnCapture(f, sq) -> 
             let mto = Ref.SqDct.[sq]
@@ -380,7 +470,13 @@ type Pos(isqs : char [], iisw : bool) =
             { Mfrom = mfrom
               Mto = mto
               Mtyp = mtyp
-              Mpgn = mv }
+              Mpgn = mv 
+              Meval = Normal
+              Scr10 = 0
+              Scr25 = 0 
+              Bresp = ""
+              ECO = ""
+              FicsPc = 0.0}
         //ambiguous file like Nge2
         | AbiguousFile(p, f, sq) -> 
             let mto = Ref.SqDct.[sq]
@@ -400,7 +496,13 @@ type Pos(isqs : char [], iisw : bool) =
                 { Mfrom = mfs.[0]
                   Mto = mto
                   Mtyp = Standard
-                  Mpgn = mv }
+                  Mpgn = mv 
+                  Meval = Normal
+                  Scr10 = 0
+                  Scr25 = 0 
+                  Bresp = ""
+                  ECO = ""
+                  FicsPc = 0.0}
             else 
                 match pc with
                 | 'N' | 'n' -> 
@@ -412,7 +514,13 @@ type Pos(isqs : char [], iisw : bool) =
                         { Mfrom = ms.[0]
                           Mto = mto
                           Mtyp = Standard
-                          Mpgn = mv }
+                          Mpgn = mv 
+                          Meval = Normal
+                          Scr10 = 0
+                          Scr25 = 0 
+                          Bresp = ""
+                          ECO = ""
+                          FicsPc = 0.0}
                     else fl()
                 | 'R' | 'r' | 'Q' | 'q' -> 
                     let fmfs = mfs |> Array.filter (fun f -> f % 8 = fn)
@@ -420,7 +528,13 @@ type Pos(isqs : char [], iisw : bool) =
                         { Mfrom = fmfs.[0]
                           Mto = mto
                           Mtyp = Standard
-                          Mpgn = mv }
+                          Mpgn = mv 
+                          Meval = Normal
+                          Scr10 = 0
+                          Scr25 = 0 
+                          Bresp = ""
+                          ECO = ""
+                          FicsPc = 0.0}
                     else fl()
                 | _ -> fl()
         //ambiguous rank like R7a6
@@ -442,7 +556,13 @@ type Pos(isqs : char [], iisw : bool) =
                 { Mfrom = mfs.[0]
                   Mto = mto
                   Mtyp = Standard
-                  Mpgn = mv }
+                  Mpgn = mv 
+                  Meval = Normal
+                  Scr10 = 0
+                  Scr25 = 0 
+                  Bresp = ""
+                  ECO = ""
+                  FicsPc = 0.0}
             else 
                 match pc with
                 | 'N' | 'n' -> 
@@ -454,7 +574,13 @@ type Pos(isqs : char [], iisw : bool) =
                         { Mfrom = ms.[0]
                           Mto = mto
                           Mtyp = Standard
-                          Mpgn = mv }
+                          Mpgn = mv 
+                          Meval = Normal
+                          Scr10 = 0
+                          Scr25 = 0 
+                          Bresp = ""
+                          ECO = ""
+                          FicsPc = 0.0}
                     else fl()
                 | 'R' | 'r' | 'Q' | 'q' -> 
                     let rmfs = mfs |> Array.filter (fun f -> f / 8 = rn)
@@ -462,7 +588,13 @@ type Pos(isqs : char [], iisw : bool) =
                         { Mfrom = rmfs.[0]
                           Mto = mto
                           Mtyp = Standard
-                          Mpgn = mv }
+                          Mpgn = mv 
+                          Meval = Normal
+                          Scr10 = 0
+                          Scr25 = 0 
+                          Bresp = ""
+                          ECO = ""
+                          FicsPc = 0.0}
                     else fl()
                 | _ -> fl()
         //pawn promotion like b8=Q
@@ -477,7 +609,13 @@ type Pos(isqs : char [], iisw : bool) =
             { Mfrom = mfrom
               Mto = mto
               Mtyp = Prom(pc)
-              Mpgn = mv }
+              Mpgn = mv 
+              Meval = Normal
+              Scr10 = 0
+              Scr25 = 0 
+              Bresp = ""
+              ECO = ""
+              FicsPc = 0.0}
         //pawn promotion capture like a*b8=Q
         | PromCapture(f, sq, pc) -> 
             let mto = Ref.SqDct.[sq]
@@ -490,7 +628,13 @@ type Pos(isqs : char [], iisw : bool) =
             { Mfrom = mfrom
               Mto = mto
               Mtyp = Prom(pc)
-              Mpgn = mv }
+              Mpgn = mv 
+              Meval = Normal
+              Scr10 = 0
+              Scr25 = 0 
+              Bresp = ""
+              ECO = ""
+              FicsPc = 0.0}
     
     /// Gets Move list give source and target
     member internal x.GetPossSqs(mfrom) = 
@@ -523,7 +667,13 @@ type Pos(isqs : char [], iisw : bool) =
             { Mfrom = mfrom
               Mto = mto
               Mtyp = Standard
-              Mpgn = mpgn }
+              Mpgn = mpgn 
+              Meval = Normal
+              Scr10 = 0
+              Scr25 = 0 
+              Bresp = ""
+              ECO = ""
+              FicsPc = 0.0}
         
         let pcto = x.Sqs.[mto]
         if pcto <> ' ' && (pc |> isw) = (pcto |> isw) then { mv with Mtyp = Invalid }

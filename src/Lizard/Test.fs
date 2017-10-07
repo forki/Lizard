@@ -153,7 +153,7 @@ module Test =
         else tst :: tstlst
     
     //get a ful array of test positions from a line
-    let rec fromLine (front:Lizard.Types.Move list) (rear:Lizard.Types.Move list) tests nm = 
+    let rec fromLine (front:Lizard.Types.Move1 list) (rear:Lizard.Types.Move1 list) tests nm = 
         if List.isEmpty rear then tests
         elif List.isEmpty rear.Tail then 
             ListAdd { Mvl = front
@@ -170,7 +170,7 @@ module Test =
                            Status = "Not Done" } tests) nm
     
     //get a full array of test positions from a variation for random tests
-    let fromVarn (vn : Lizard.Types.Varn1) = 
+    let fromVarn (vn : Lizard.Types.Varn) = 
         let tstlst = 
             if vn.Isw then 
                 vn.Brchs 

@@ -12,6 +12,12 @@ module Types =
         | Ep
         | Standard
         | Invalid
+    /// Move eval
+    type MvEval = 
+        | Normal
+        | Excellent
+        | Weak
+        | Surprising
     
     /// Index of square on the board
     type Sq = int
@@ -28,18 +34,38 @@ module Types =
             match x.Mtyp with
             | Prom(t) -> mv + t.ToString()
             | _ -> mv
+    /// Move type including eval
+    type Move1 = 
+        { Mfrom : Sq
+          Mto : Sq
+          Mtyp : MvTyp
+          Mpgn : string
+          Meval : MvEval
+          Scr10 : int
+          Scr25 : int 
+          Bresp : string
+          ECO : string
+          FicsPc : float}
+        override x.ToString() = x.Mpgn
+        member x.UCI = 
+            let mv = Ref.sq.[x.Mfrom] + Ref.sq.[x.Mto]
+            match x.Mtyp with
+            | Prom(t) -> mv + t.ToString()
+            | _ -> mv
     
     //storage of variations
-    type Varn = 
-        { Name : string
-          Isw : bool
-          Brchs : Move list list }
     type Line = 
         { Mvs : Move list }
     type Varn1 = 
         { Name : string
           Isw : bool
           Brchs : Line list }
+    type Line1 = 
+        { Mvs : Move1 list }
+    type Varn = 
+        { Name : string
+          Isw : bool
+          Brchs : Line1 list }
     
     //test - records of tests
     type TestDet = 

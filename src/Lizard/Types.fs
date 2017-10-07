@@ -12,16 +12,29 @@ module Types =
         | Ep
         | Standard
         | Invalid
+
+    /// Move eval
+    type MvEval = 
+        | Normal
+        | Excellent
+        | Weak
+        | Surprising
     
     /// Index of square on the board
     type Sq = int
     
-    /// Fast type for making moves on board
-    type Move = 
+    /// Move type including eval
+    type Move1 = 
         { Mfrom : Sq
           Mto : Sq
           Mtyp : MvTyp
-          Mpgn : string }
+          Mpgn : string
+          Meval : MvEval
+          Scr10 : int
+          Scr25 : int 
+          Bresp : string
+          ECO : string
+          FicsPc : float}
         override x.ToString() = x.Mpgn
         member x.UCI = 
             let mv = Ref.sq.[x.Mfrom] + Ref.sq.[x.Mto]
@@ -30,17 +43,17 @@ module Types =
             | _ -> mv
     
     //storage of variations
-    type Line = 
-        { Mvs : Move list }
-    type Varn1 = 
+    type Line1 = 
+        { Mvs : Move1 list }
+    type Varn = 
         { Name : string
           Isw : bool
-          Brchs : Line list }
+          Brchs : Line1 list }
     
     //test - records of tests
     type TestDet = 
-        { Mvl : Move list
-          Mv : Move
+        { Mvl : Move1 list
+          Mv : Move1
           Vnname : string
           Status : string }
     

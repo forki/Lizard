@@ -385,7 +385,7 @@ module Controls =
         let updateLV() = 
             let nmvs = vstt.GetNextMvs()
             nextmvs.Items.Clear()
-            let addit (m : Move) = 
+            let addit (m : Move1) = 
                 let itm = new ListViewItem()
                 itm.Text <- m.Mpgn
                 itm.Tag <- m.Mpgn
@@ -402,7 +402,7 @@ module Controls =
             + 1
 
         // updateVariation
-        let updVarn (curv:Varn1) = 
+        let updVarn (curv:Varn) = 
             let numcols = curv.Brchs.Length * 2
             let numrows = ((curv|>Varn.maxl) + 1 )/ 2
             dg.Rows.Clear()

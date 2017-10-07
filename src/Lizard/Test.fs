@@ -170,18 +170,18 @@ module Test =
                            Status = "Not Done" } tests) nm
     
     //get a full array of test positions from a variation for random tests
-    let fromVarn (vn : Lizard.Types.Varn) = 
+    let fromVarn (vn : Lizard.Types.Varn1) = 
         let tstlst = 
             if vn.Isw then 
                 vn.Brchs 
                 |> List.map 
-                       (fun b -> fromLine [] b [] (vn.Name))
+                       (fun b -> fromLine [] b.Mvs [] (vn.Name))
             else 
                 vn.Brchs 
                 |> List.map 
                        (fun b -> 
-                       fromLine [ b.Head ] 
-                           b.Tail [] (vn.Name))
+                       fromLine [ b.Mvs.Head ] 
+                           b.Mvs.Tail [] (vn.Name))
         tstlst
         |> List.concat
         |> List.toArray
@@ -241,13 +241,13 @@ module Test =
             if vn.Isw then 
                 vn.Brchs 
                 |> List.map 
-                       (fun b -> fromLine [] b [] (vn.Name))
+                       (fun b -> fromLine [] b.Mvs [] (vn.Name))
             else 
                 vn.Brchs 
                 |> List.map 
                        (fun b -> 
-                       fromLine [ b.Head ] 
-                           b.Tail [] (vn.Name))
+                       fromLine [ b.Mvs.Head ] 
+                           b.Mvs.Tail [] (vn.Name))
         
         //select random subset
         let alltestgenl = new System.Collections.Generic.List<TestDet list>(tstlst)

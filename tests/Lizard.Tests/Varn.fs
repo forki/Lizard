@@ -63,7 +63,7 @@ let beplPgn3 =
 let getmvl pgn =
      let gms = PGN.ReadFromString pgn
      let gm = gms.Head
-     gm.Moves
+     {Mvs=gm.Moves}
 
 let mvl1 = getmvl weprPgn
 let mvl2 = getmvl weplPgn
@@ -92,17 +92,17 @@ let ``Varn emp``() =
 
 [<Test>]
 let ``Varn findsv``() =
-    let ans = Varn.findsv mvl3 mvll
+    let ans = Varn.findsv mvl3.Mvs mvll
     let ans2 = Varn.findsv [] mvll
-    let ans3 = Varn.findsv mvl5 mvll
+    let ans3 = Varn.findsv mvl5.Mvs mvll
     ans.Value|>shouldEqual 2
     ans2.Value|>shouldEqual 0
     ans3|>shouldEqual None
 
 [<Test>]
 let ``Varn findnmvs``() =
-    let ans = Varn.findnmvs mvl3 mvll
-    let ans2 = Varn.findnmvs mvl6 mvll
+    let ans = Varn.findnmvs mvl3.Mvs mvll
+    let ans2 = Varn.findnmvs mvl6.Mvs mvll
     ans.Length|>shouldEqual 0
     ans2.Length|>shouldEqual 2
     ans2.[0].Mpgn|>shouldEqual "d4"
@@ -110,20 +110,20 @@ let ``Varn findnmvs``() =
 
 [<Test>]
 let ``Varn smmv``() =
-    let ans = Varn.smmv mvl3 mvl4 0
-    let ans2 = Varn.smmv mvl1 mvl2 0
-    let ans3 = Varn.smmv mvl1 mvl3 0
+    let ans = Varn.smmv mvl3.Mvs mvl4.Mvs 0
+    let ans2 = Varn.smmv mvl1.Mvs mvl2.Mvs 0
+    let ans3 = Varn.smmv mvl1.Mvs mvl3.Mvs 0
     ans|>shouldEqual 4
     ans2|>shouldEqual 3
     ans3|>shouldEqual 0
 
 [<Test>]
 let ``Varn fndidx``() =
-    let ans = Varn.fndidx mvll 0 0 0 mvl1
-    let ans2 = Varn.fndidx mvll 0 0 0 mvl2
-    let ans3 = Varn.fndidx mvll 0 0 0 mvl4
-    let ans4 = Varn.fndidx mvll 0 0 0 mvl5
-    let ans5 = Varn.fndidx mvll 0 0 0 mvl6
+    let ans = Varn.fndidx mvll 0 0 0 mvl1.Mvs
+    let ans2 = Varn.fndidx mvll 0 0 0 mvl2.Mvs
+    let ans3 = Varn.fndidx mvll 0 0 0 mvl4.Mvs
+    let ans4 = Varn.fndidx mvll 0 0 0 mvl5.Mvs
+    let ans5 = Varn.fndidx mvll 0 0 0 mvl6.Mvs
     ans|>shouldEqual 0
     ans2|>shouldEqual 1
     ans3|>shouldEqual 3
@@ -132,18 +132,18 @@ let ``Varn fndidx``() =
 
 [<Test>]
 let ``Varn mrgbrch``() =
-    let ans = Varn.mrgbrch mvl1 mvll
-    let ans2 = Varn.mrgbrch mvl5 mvll
-    let ans3 = Varn.mrgbrch mvl6 mvll
+    let ans = Varn.mrgbrch mvl1.Mvs mvll
+    let ans2 = Varn.mrgbrch mvl5.Mvs mvll
+    let ans3 = Varn.mrgbrch mvl6.Mvs mvll
     ans.Length|>shouldEqual 4
     ans2.Length|>shouldEqual 5
     ans3.Length|>shouldEqual 4
 
 [<Test>]
 let ``Varn add``() =
-    let ans = Varn.add vrn mvl1
-    let ans2 = Varn.add vrn mvl5
-    let ans3 = Varn.add vrn mvl6
+    let ans = Varn.add vrn mvl1.Mvs
+    let ans2 = Varn.add vrn mvl5.Mvs
+    let ans3 = Varn.add vrn mvl6.Mvs
     ans.Brchs.Length|>shouldEqual 4
     ans2.Brchs.Length|>shouldEqual 5
     ans3.Brchs.Length|>shouldEqual 4

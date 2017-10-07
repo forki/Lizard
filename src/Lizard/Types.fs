@@ -30,10 +30,12 @@ module Types =
             | _ -> mv
     
     //storage of variations
-    type Varn = 
+    type Line = 
+        { Mvs : Move list }
+    type Varn1 = 
         { Name : string
           Isw : bool
-          Brchs : Move list list }
+          Brchs : Line list }
     
     //test - records of tests
     type TestDet = 

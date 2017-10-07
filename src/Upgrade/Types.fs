@@ -34,6 +34,12 @@ module Types =
         { Name : string
           Isw : bool
           Brchs : Move list list }
+    type Line = 
+        { Mvs : Move list }
+    type Varn1 = 
+        { Name : string
+          Isw : bool
+          Brchs : Line list }
     
     //test - records of tests
     type TestDet = 

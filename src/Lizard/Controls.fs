@@ -402,7 +402,7 @@ module Controls =
             + 1
 
         // updateVariation
-        let updVarn (curv:Varn) = 
+        let updVarn (curv:Varn1) = 
             let numcols = curv.Brchs.Length * 2
             let numrows = ((curv|>Varn.maxl) + 1 )/ 2
             dg.Rows.Clear()
@@ -425,13 +425,13 @@ module Controls =
             //add moves
             let brchs = curv.Brchs
             for b=0 to brchs.Length-1 do
-                let brch = brchs.[b]
+                let brch = brchs.[b].Mvs
                 let mutable ingrey = false
                 for i = 0 to brch.Length-1 do
                     let cell = new SourceGrid.Cells.Cell(brch.[i].Mpgn, typedefof<string>)
                     ingrey <- 
-                        b>0 && i=0 && brchs.[b].[0].Mpgn=brchs.[b-1].[0].Mpgn //initial set
-                        || ingrey && brchs.[b].[i].Mpgn=brchs.[b-1].[i].Mpgn //already set and still the same 
+                        b>0 && i=0 && brchs.[b].Mvs.[0].Mpgn=brchs.[b-1].Mvs.[0].Mpgn //initial set
+                        || ingrey && brchs.[b].Mvs.[i].Mpgn=brchs.[b-1].Mvs.[i].Mpgn //already set and still the same 
                     let r,c = rc(b,i)
                     cell.View <- if c % 4 = 0 || (c + 1) % 4 = 0 then
                                     if ingrey then viewCell1G else viewCell1 

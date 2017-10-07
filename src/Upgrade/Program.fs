@@ -16,32 +16,27 @@ let main argv =
         let ans = Path.Combine(opts.Opnfol, "Black")
         ans
     
-    let wfls = Directory.GetFiles(wfol, "*.pgn")
-    let bfls = Directory.GetFiles(bfol, "*.pgn")
+    let wfls = Directory.GetFiles(wfol, "*.json")
+    let bfls = Directory.GetFiles(bfol, "*.json")
     //write new storage
+    let json = FsPickler.CreateJsonSerializer()
     for pfn in wfls do
         let nm = Path.GetFileNameWithoutExtension(pfn)
-        let pgns = PGN.ReadFromFile pfn
-        let brchs = pgns |> List.map (fun g -> g.Moves)
-        let vn = 
-            { Name = nm
-              Isw = true
-              Brchs = brchs }
-        let newfile = Path.Combine(wfol, nm + ".json")
-        let json = FsPickler.CreateJsonSerializer()
-        let str = json.PickleToString<Varn>(vn)
-        File.WriteAllText(newfile, str)
+        File.Copy(pfn,pfn+".old",true)
+        let str = File.ReadAllText(pfn)
+        let vn = json.UnPickleOfString<Varn>(str)
+        let brchs1 = vn.Brchs|>List.map(fun ml -> {Mvs=ml})
+        let vn1:Varn1 = {Name=vn.Name;Isw=vn.Isw;Brchs=brchs1}
+        let str = json.PickleToString<Varn1>(vn1)
+        File.WriteAllText(pfn, str)
     for pfn in bfls do
         let nm = Path.GetFileNameWithoutExtension(pfn)
-        let pgns = PGN.ReadFromFile pfn
-        let brchs = pgns |> List.map (fun g -> g.Moves)
-        let vn = 
-            { Name = nm
-              Isw = false
-              Brchs = brchs }
-        let newfile = Path.Combine(bfol, nm + ".json")
-        let json = FsPickler.CreateJsonSerializer()
-        let str = json.PickleToString<Varn>(vn)
-        File.WriteAllText(newfile, str)
+        File.Copy(pfn,pfn+".old",true)
+        let str = File.ReadAllText(pfn)
+        let vn = json.UnPickleOfString<Varn>(str)
+        let brchs1 = vn.Brchs|>List.map(fun ml -> {Mvs=ml})
+        let vn1:Varn1 = {Name=vn.Name;Isw=vn.Isw;Brchs=brchs1}
+        let str = json.PickleToString<Varn1>(vn1)
+        File.WriteAllText(pfn, str)
 
     0 // return an integer exit code

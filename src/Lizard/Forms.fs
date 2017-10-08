@@ -37,7 +37,7 @@ module Forms =
         do 
             this.Controls.Add(cont)
             bd.Show(cont, DockState.DockLeft)
-            pan.Show(cont, DockState.DockBottom)
+            pan.Show(cont, DockState.DockBottomAutoHide)
             pan.Activate()
             vn.Show(cont, DockState.Document)
             tst.Show(cont, DockState.Document)

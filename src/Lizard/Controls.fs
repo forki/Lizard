@@ -27,9 +27,6 @@ module Controls =
         let sava = new RibbonButton("Save As", Image = img "sava.png")
         let del = new RibbonButton("Delete", Image = img "del.png")
         let delline = new RibbonButton("Delete Line", Image = img "delline.png")
-        //Analyse
-        let arpl = new RibbonPanel("Analyse")
-        let anlp = new RibbonButton("Position", Image = img "cog2.png")
         //Support
         let srpl = new RibbonPanel("Support")
         let src = new RibbonButton("Source Code", MaxSizeMode = RibbonElementSizeMode.Medium, SmallImage = null)
@@ -70,9 +67,6 @@ module Controls =
                    (fun i -> vl.DropDownItems.Add(new RibbonButton(i, Style = RibbonButtonStyle.DropDownListItem)))
             if vl.DropDownItems.Count > 0 then vl.SelectedItem <- vl.DropDownItems.[0]
         
-        //analyse pos
-        let anlpos (e) = astt.AnlpStart()
-        
         let addOpen() = 
             wb.DropDownItems.Add(wbtn)
             wb.DropDownItems.Add(bbtn)
@@ -80,8 +74,6 @@ module Controls =
             loadvrs (true)
             vrpl.Items.AddRange([ nw; opn; wb; vl; sav; sava; del; delline ])
             otab.Panels.Add(vrpl)
-            arpl.Items.AddRange([ anlp ])
-            otab.Panels.Add(arpl)
             srpl.Items.AddRange([ src; cns ])
             otab.Panels.Add(srpl)
             this.Tabs.Add(otab)
@@ -100,7 +92,6 @@ module Controls =
             wbtn.Click.Add(fun _ -> loadvrs (true))
             bbtn.Click.Add(fun _ -> loadvrs (false))
             vstt.VarsChng |> Observable.add loadvrs
-            anlp.Click.Add(anlpos)
             src.Click.Add(fun _ -> System.Diagnostics.Process.Start("https://github.com/pbbwfc/Lizard") |> ignore)
             cns.Click.Add(fun _ -> System.Diagnostics.Process.Start("http://www.arc-trust.org/") |> ignore)
     
@@ -607,7 +598,7 @@ module Controls =
             new Label(Dock = DockStyle.Top, Text = "Stopped", 
                       TextAlign = ContentAlignment.BottomLeft)
         let sbtn = 
-            new System.Windows.Forms.Button(Text = "Stop", 
+            new System.Windows.Forms.Button(Text = "Start", 
                                             Dock = DockStyle.Right)
         let dg = 
             new Grid(Dock = DockStyle.Fill, 
@@ -658,6 +649,15 @@ module Controls =
                     this.Invoke(MethodInvoker(fun () -> addmsg())) |> ignore
                 with _ -> ()
             else addmsg()
+
+        //start or stop
+        let startstop() =
+            if sbtn.Text="Start" then
+                sbtn.Text<-"Stop"
+                astt.AnlpStart()
+            else
+                sbtn.Text<-"Start"
+                astt.AnlpStop()
         
         do 
             this.Controls.Add(dg)
@@ -668,6 +668,6 @@ module Controls =
             astt.AnlpChng |> Observable.add setAnl
             astt.AnlpHeadChng |> Observable.add setHdr
             astt.AnlpMsg |> Observable.add addMsg
-            sbtn.Click.Add(fun _ -> astt.AnlpStop())
+            sbtn.Click.Add(fun _ -> startstop())
     
    

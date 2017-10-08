@@ -27,14 +27,6 @@ module Controls =
         let sava = new RibbonButton("Save As", Image = img "sava.png")
         let del = new RibbonButton("Delete", Image = img "del.png")
         let delline = new RibbonButton("Delete Line", Image = img "delline.png")
-        //Test
-        let trpl = new RibbonPanel("Test")
-        let rt = new RibbonButton("Run", Image = img "Train.png", Style = RibbonButtonStyle.SplitDropDown)
-        let rrt = new RibbonButton("Run Random Test", SmallImage = img "rantest.png")
-        let rlt = new RibbonButton("Run Linear Test", SmallImage = img "lintest.png")
-        let tr = new RibbonButton("Results", Image = img "rosette.png", Style = RibbonButtonStyle.SplitDropDown)
-        let rtr = new RibbonButton("Random Results", SmallImage = img "ranres.png")
-        let ltr = new RibbonButton("Linear Results", SmallImage = img "linres.png")
         //Analyse
         let arpl = new RibbonPanel("Analyse")
         let anlp = new RibbonButton("Position", Image = img "cog2.png")
@@ -78,21 +70,6 @@ module Controls =
                    (fun i -> vl.DropDownItems.Add(new RibbonButton(i, Style = RibbonButtonStyle.DropDownListItem)))
             if vl.DropDownItems.Count > 0 then vl.SelectedItem <- vl.DropDownItems.[0]
         
-        //run random test
-        let dorantest (e) = 
-            let nm, isw = vl.SelectedItem.Text, wb.SelectedItem.Text = "White"
-            tstt.LoadTest(true, nm, isw)
-        
-        //run linear test
-        let dolintest (e) = 
-            let nm, isw = vl.SelectedItem.Text, wb.SelectedItem.Text = "White"
-            tstt.LoadTest(false, nm, isw)
-        
-        //show random results
-        let showranres (e) = tstt.ShowRes(true)
-        //show linear results
-        let showlinres (e) = tstt.ShowRes(false)
-        
         //analyse pos
         let anlpos (e) = astt.AnlpStart()
         
@@ -103,10 +80,6 @@ module Controls =
             loadvrs (true)
             vrpl.Items.AddRange([ nw; opn; wb; vl; sav; sava; del; delline ])
             otab.Panels.Add(vrpl)
-            rt.DropDownItems.AddRange([ rrt; rlt ])
-            tr.DropDownItems.AddRange([ rtr; ltr ])
-            trpl.Items.AddRange([ rt; tr ])
-            otab.Panels.Add(trpl)
             arpl.Items.AddRange([ anlp ])
             otab.Panels.Add(arpl)
             srpl.Items.AddRange([ src; cns ])
@@ -127,10 +100,6 @@ module Controls =
             wbtn.Click.Add(fun _ -> loadvrs (true))
             bbtn.Click.Add(fun _ -> loadvrs (false))
             vstt.VarsChng |> Observable.add loadvrs
-            rrt.Click.Add(dorantest)
-            rlt.Click.Add(dolintest)
-            rtr.Click.Add(showranres)
-            ltr.Click.Add(showlinres)
             anlp.Click.Add(anlpos)
             src.Click.Add(fun _ -> System.Diagnostics.Process.Start("https://github.com/pbbwfc/Lizard") |> ignore)
             cns.Click.Add(fun _ -> System.Diagnostics.Process.Start("http://www.arc-trust.org/") |> ignore)
@@ -573,14 +542,18 @@ module Controls =
             tstt.TestRes |> Observable.add updTest
             cbtn.Click.Add(fun _ -> tstt.CloseTest())
     
-    type TestRes() as this = 
-        inherit DockContent(Icon = ico "board.ico", Text = "Test Results", HideOnClose = true)
+    type TestRes(rnd:bool) as this = 
+        inherit DockContent(Icon = (if rnd then ico "rosette.ico" else ico "rosette_blue.ico"), Text = (if rnd then "Random Test Results" else "Linear Test Results"))
         let pnlb = new Panel(Dock = DockStyle.Bottom, Height = 30)
-        let cbtn = new System.Windows.Forms.Button(Text = "Close", Dock = DockStyle.Right)
+        let clbl = new System.Windows.Forms.Label(Text = "Double Click Row to Run Test", Width = 200)
+        let rlbtn = new System.Windows.Forms.Button(Text="ReLoad",Dock=DockStyle.Right)
         let dg = new Grid(Dock = DockStyle.Fill, BorderStyle = BorderStyle.FixedSingle, FixedRows = 1)
+        let mutable res = 
+            if rnd then Lizard.Test.getallres()
+            else Lizard.Test.getallreslin()
         
-        //update results
-        let updRes (ress : string [] []) = 
+        //load results
+        let loadRes() = 
             this.Focus() |> ignore
             dg.Rows.Clear()
             dg.Rows.Insert(0)
@@ -602,16 +575,29 @@ module Controls =
                     else redCell
                 res |> Array.iteri (addcell vc (r + 1))
             
-            ress |> Array.iteri addr
+            res |> Array.iteri addr
             dg.AutoSizeCells()
         
+        let reloadRes() =
+            res <-
+                if rnd then Lizard.Test.getallres()
+                else Lizard.Test.getallreslin()
+            loadRes()
+        
+        let runtest(sender:Grid) =
+            let r = sender.MouseCellPosition.Row
+            let nm = dg.[r,1].DisplayText
+            let isw=dg.[r,0].DisplayText="White"
+            tstt.LoadTest(rnd, nm, isw)
+
         do 
             this.Controls.Add(dg)
-            pnlb.Controls.Add(cbtn)
+            pnlb.Controls.AddRange([|clbl;rlbtn|])
             this.Controls.Add(pnlb)
-            //events
-            tstt.ResLoad |> Observable.add updRes
-            cbtn.Click.Add(fun _ -> this.Hide())
+            loadRes()
+            //Events
+            dg.DoubleClick.Add(fun _ -> runtest(dg))
+            rlbtn.Click.Add(fun _ -> reloadRes())
 
     type PosAnal() as this = 
         inherit DockContent(Icon = ico "cog2.ico", Text = "Analyse Position", 

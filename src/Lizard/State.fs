@@ -190,14 +190,9 @@ and TestState(sst : SharedState) =
     //test change
     let tchgEvt = new Event<_>()
     let tresEvt = new Event<_>()
-    //test results
-    let resTabEvt = new Event<_>()
-    let resLoadEvt = new Event<_>()
     //publish
     member x.TestChng = tchgEvt.Publish
     member x.TestRes = tresEvt.Publish
-    member x.ResTabLoad = resTabEvt.Publish
-    member x.ResLoad = resLoadEvt.Publish
     //members
     member x.Tests = tests
     member x.SetTest(i, t) = tests.[i] <- t
@@ -208,6 +203,7 @@ and TestState(sst : SharedState) =
     member x.SetCor tc = tstscor <- tc
     
     member x.LoadTest(rnd, nm, isw) = 
+        let pstt : PosnState = sst.Pstt
         System.Windows.Forms.Cursor.Current <- System.Windows.Forms.Cursors.WaitCursor
         sst.SetMode(DoTest)
         tests <- if rnd then Test.fromName nm isw
@@ -217,6 +213,7 @@ and TestState(sst : SharedState) =
         tnm <- nm
         tisw <- isw
         trnd <- rnd
+        tisw |> pstt.TrigOri
         tests |> tchgEvt.Trigger
     
     member x.SetTestPos(i) = 
@@ -241,14 +238,6 @@ and TestState(sst : SharedState) =
         tisw <- false
         trnd <- false
         sst.SetMode(DoVarn)
-    
-    //Test Results
-    member x.ShowRes(rnd) = 
-        resTabEvt.Trigger()
-        let res = 
-            if rnd then Test.getallres()
-            else Test.getallreslin()
-        res |> resLoadEvt.Trigger
     
     member x.TrigRes(rs) = rs |> tresEvt.Trigger
 

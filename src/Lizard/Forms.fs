@@ -1,7 +1,6 @@
 namespace LizardChessUI
 
 open System.Windows.Forms
-open System.Drawing
 open State
 open Controls
 open WeifenLuo.WinFormsUI.Docking
@@ -15,9 +14,10 @@ module Forms =
         let bd = new Board()
         let vn = new VarnGrid()
         let tst = new Test()
-        let res = new TestRes()
+        let lres = new TestRes(false)
+        let rres = new TestRes(true)
         let pan = new PosAnal()
-        let cont = new DockPanel(Dock = DockStyle.Fill)
+        let cont = new DockPanel(Dock = DockStyle.Fill,DockLeftPortion=400.0,DockRightPortion=300.0)
         
         let updTabs (mode) = 
             cont.SuspendLayout(true)
@@ -33,7 +33,6 @@ module Forms =
         
         let hideTabs (e) = 
             tst.Hide()
-            res.Hide()
         
         do 
             this.Controls.Add(cont)
@@ -42,9 +41,9 @@ module Forms =
             pan.Activate()
             vn.Show(cont, DockState.Document)
             tst.Show(cont, DockState.Document)
-            res.Show(cont, DockState.Document)
+            lres.Show(cont, DockState.DockRightAutoHide)
+            rres.Show(cont, DockState.DockRightAutoHide)
             this.Controls.Add(ts)
             //events
             stt.ModeChng |> Observable.add updTabs
-            tstt.ResTabLoad |> Observable.add (res.Show)
             this.Shown.Add(hideTabs)

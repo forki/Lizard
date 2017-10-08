@@ -111,7 +111,7 @@ module Test =
         let bl = bvars |> List.map (fun nm -> getarr false nm reslst)
         (wl @ bl) |> List.toArray
     
-    //getallres - gets an array of an array of all results
+    //getallreslin - gets an array of an array of all results
     let getallreslin() = 
         let reslst = loadResultsLin() |> List.ofArray
         let wvars = Lizard.Varn.wvars()

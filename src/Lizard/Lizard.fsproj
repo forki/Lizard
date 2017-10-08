@@ -84,6 +84,8 @@
     <EmbeddedResource Include="Icons\Lizard.ico">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </EmbeddedResource>
+    <EmbeddedResource Include="Icons\rosette_blue.ico" />
+    <EmbeddedResource Include="Icons\rosette.ico" />
     <EmbeddedResource Include="Icons\board.ico" />
     <EmbeddedResource Include="Icons\anal.ico" />
     <EmbeddedResource Include="Icons\cog.ico" />

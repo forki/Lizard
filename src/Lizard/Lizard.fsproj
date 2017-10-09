@@ -64,9 +64,6 @@
   </Target>
   -->
   <ItemGroup>
-    <Content Include="Updates.txt">
-      <Paket>True</Paket>
-    </Content>
     <Compile Include="AssemblyInfo.fs" />
     <None Include="App.config" />
     <EmbeddedResource Include="Cursors\BlackBishop.cur" />
@@ -230,17 +227,6 @@
       <ItemGroup>
         <Reference Include="SourceGrid">
           <HintPath>..\..\packages\SourceGrid\lib\net35\SourceGrid.dll</HintPath>
-          <Private>True</Private>
-          <Paket>True</Paket>
-        </Reference>
-      </ItemGroup>
-    </When>
-  </Choose>
-  <Choose>
-    <When Condition="$(TargetFrameworkIdentifier) == '.NETFramework' And $(TargetFrameworkVersion) == 'v4.6.1'">
-      <ItemGroup>
-        <Reference Include="System.Windows.Forms.Ribbon35">
-          <HintPath>..\..\packages\System.Windows.Forms.Ribbon35\lib\net35\System.Windows.Forms.Ribbon35.dll</HintPath>
           <Private>True</Private>
           <Paket>True</Paket>
         </Reference>

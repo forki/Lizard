@@ -10,91 +10,6 @@ open Lizard.Types
 open Lizard
 
 module Controls = 
-    type TsRib() as this = 
-        inherit Ribbon(Height = 140, OrbStyle = RibbonOrbStyle.Office_2010, OrbVisible = false)
-        let sv = new RibbonButton("New", SmallImage = img "save16.png")
-        //Openings
-        let otab = new RibbonTab("Openings")
-        //Variation
-        let vrpl = new RibbonPanel("Variation")
-        let nw = new RibbonButton("New", Image = img "new.png")
-        let opn = new RibbonButton("Open", Image = img "opn.png")
-        let wbtn = new RibbonButton("White", Style = RibbonButtonStyle.DropDownListItem)
-        let bbtn = new RibbonButton("Black", Style = RibbonButtonStyle.DropDownListItem)
-        let wb = new RibbonComboBox(TextBoxWidth = 150)
-        let vl = new RibbonComboBox(TextBoxWidth = 150)
-        let sav = new RibbonButton("Save", Image = img "sav.png")
-        let sava = new RibbonButton("Save As", Image = img "sava.png")
-        let del = new RibbonButton("Delete", Image = img "del.png")
-        let delline = new RibbonButton("Delete Line", Image = img "delline.png")
-        //Support
-        let srpl = new RibbonPanel("Support")
-        let src = new RibbonButton("Source Code", MaxSizeMode = RibbonElementSizeMode.Medium, SmallImage = null)
-        let cns = new RibbonButton("Conservation", MaxSizeMode = RibbonElementSizeMode.Medium, SmallImage = null)
-        
-        // save variation
-        let dosave (e) = 
-            let msg = vstt.SaveVarn()
-            MessageBox.Show(msg) |> ignore
-        
-        // delete variation
-        let dodel (e) = 
-            let nm, isw = vl.SelectedItem.Text, wb.SelectedItem.Text = "White"
-            if MessageBox.Show
-                   ("Do you want to delete variation " + nm + "?", "Delete Variation", MessageBoxButtons.YesNo, 
-                    MessageBoxIcon.Question) = DialogResult.Yes then 
-                vstt.DelVarn(nm, isw)
-                MessageBox.Show
-                    ("Variation " + nm + " deleted!", "Delete Variation", MessageBoxButtons.OK, 
-                     MessageBoxIcon.Exclamation) |> ignore
-        
-        // delete line
-        let dodelline (e) = 
-            let selvar = vstt.SelVar
-            if selvar <> -1 
-               && (MessageBox.Show
-                       ("Do you want to delete line " + (selvar + 1).ToString() + " ?", "Delete Line", 
-                        MessageBoxButtons.YesNo) = DialogResult.Yes) then vstt.DelLine()
-        
-        //load vrs for dropdown
-        let loadvrs (isw) = 
-            let vrs = vstt.Vars(isw)
-            if isw then wb.SelectedItem <- wb.DropDownItems.[0]
-            else wb.SelectedItem <- wb.DropDownItems.[1]
-            vl.DropDownItems.Clear()
-            vrs 
-            |> List.iter 
-                   (fun i -> vl.DropDownItems.Add(new RibbonButton(i, Style = RibbonButtonStyle.DropDownListItem)))
-            if vl.DropDownItems.Count > 0 then vl.SelectedItem <- vl.DropDownItems.[0]
-        
-        let addOpen() = 
-            wb.DropDownItems.Add(wbtn)
-            wb.DropDownItems.Add(bbtn)
-            wb.SelectedItem <- wb.DropDownItems.[0]
-            loadvrs (true)
-            vrpl.Items.AddRange([ nw; opn; wb; vl; sav; sava; del; delline ])
-            otab.Panels.Add(vrpl)
-            srpl.Items.AddRange([ src; cns ])
-            otab.Panels.Add(srpl)
-            this.Tabs.Add(otab)
-        
-        do 
-            this.QuickAcessToolbar.Items.Add(sv)
-            //Openings
-            addOpen()
-            //events
-            nw.Click.Add(fun _ -> (new DlgNew()).ShowDialog() |> ignore)
-            opn.Click.Add(fun _ -> vstt.OpenVarn(vl.SelectedItem.Text, wb.SelectedItem.Text = "White"))
-            sav.Click.Add(dosave)
-            sava.Click.Add(fun _ -> (new DlgSaveAs()).ShowDialog() |> ignore)
-            del.Click.Add(dodel)
-            delline.Click.Add(dodelline)
-            wbtn.Click.Add(fun _ -> loadvrs (true))
-            bbtn.Click.Add(fun _ -> loadvrs (false))
-            vstt.VarsChng |> Observable.add loadvrs
-            src.Click.Add(fun _ -> System.Diagnostics.Process.Start("https://github.com/pbbwfc/Lizard") |> ignore)
-            cns.Click.Add(fun _ -> System.Diagnostics.Process.Start("http://www.arc-trust.org/") |> ignore)
-    
     type Board() as this = 
         inherit DockContent(Icon = ico "board.ico", CloseButtonVisible = false, Text = "Board")
         let mutable sqTo = -1
@@ -341,6 +256,7 @@ module Controls =
 
         // updateVariation
         let updVarn (curv:Varn) = 
+            this.Text<-curv.Name
             let numcols = curv.Brchs.Length * 2
             let numrows = ((curv|>Varn.maxl) + 1 )/ 2
             dg.Rows.Clear()

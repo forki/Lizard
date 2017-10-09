@@ -74,10 +74,60 @@ module Dialogs =
             hc2.Controls.Add(okbtn)
             [ hc1; hc2 ] |> List.iteri (fun i c -> vc.Controls.Add(c, 0, i))
             this.Controls.Add(vc)
+            this.AcceptButton<-okbtn
+            this.CancelButton<-cnbtn
             //events
             cnbtn.Click.Add(fun _ -> this.Close())
             okbtn.Click.Add(donew)
     
+    type DlgOpn() as this = 
+        inherit Form(Text = "Open Variation", Height = 110, Width = 280, 
+                     FormBorderStyle = FormBorderStyle.FixedDialog)
+        let vc = new TableLayoutPanel(Dock = DockStyle.Fill, ColumnCount = 1, RowCount = 2)
+        let hc1 = new FlowLayoutPanel(FlowDirection = FlowDirection.LeftToRight, Height = 30, Width = 260)
+        let hc2 = new FlowLayoutPanel(FlowDirection = FlowDirection.RightToLeft, Height = 30, Width = 260)
+        let vrn = new ComboBox()
+        let col = new ComboBox()
+        let okbtn = new Button(Text = "OK")
+        let cnbtn = new Button(Text = "Cancel")
+        
+        let loadvrs (isw) = 
+            let vrs = vstt.Vars(isw)
+            if isw then col.SelectedItem <- col.Items.[0]
+            else col.SelectedItem <- col.Items.[1]
+            vrn.Items.Clear()
+            vrs 
+            |> List.iter 
+                   (fun i -> vrn.Items.Add(box i)|>ignore)
+            if vrn.Items.Count > 0 then vrn.SelectedItem <- vrn.Items.[0]
+
+        let doopn (e) = 
+            vstt.OpenVarn(vrn.Text, col.SelectedIndex = 0)
+            this.Close()
+        
+        do 
+            this.MaximizeBox <- false
+            this.MinimizeBox <- false
+            this.ShowInTaskbar <- false
+            this.StartPosition <- FormStartPosition.CenterParent
+            [| box "White"
+               box "Black" |]
+            |> col.Items.AddRange
+            col.SelectedIndex <- 0
+            hc1.Controls.Add(col)
+            loadvrs(true)
+            hc1.Controls.Add(vrn)
+            hc2.Controls.Add(cnbtn)
+            hc2.Controls.Add(okbtn)
+            [ hc1; hc2 ] |> List.iteri (fun i c -> vc.Controls.Add(c, 0, i))
+            this.Controls.Add(vc)
+            this.AcceptButton<-okbtn
+            this.CancelButton<-cnbtn
+            //events
+            col.SelectedIndexChanged.Add(fun _ -> loadvrs(col.SelectedIndex=0))
+            cnbtn.Click.Add(fun _ -> this.Close())
+            okbtn.Click.Add(doopn)
+
     type DlgSaveAs() as this = 
         inherit Form(Text = "Save Variation As", Height = 110, Width = 200, 
                      FormBorderStyle = FormBorderStyle.FixedDialog)
@@ -102,13 +152,10 @@ module Dialogs =
             hc2.Controls.Add(okbtn)
             [ hc1; hc2 ] |> List.iteri (fun i c -> vc.Controls.Add(c, 0, i))
             this.Controls.Add(vc)
-            //events
+            this.AcceptButton<-okbtn
+            this.CancelButton<-cnbtn
+           //events
             cnbtn.Click.Add(fun _ -> this.Close())
             okbtn.Click.Add(dosav)
     
-    type RowTyp = 
-        | Head
-        | Text
-        | Num
-        | Bool
     

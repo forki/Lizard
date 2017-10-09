@@ -25,7 +25,8 @@ module Controls =
         let sqs : PictureBox [] = Array.zeroCreate 64
         let flbls : Label [] = Array.zeroCreate 8
         let rlbls : Label [] = Array.zeroCreate 8
-        let btnpnl = new Panel(Width = 420, Height = 40, Left = 29, Top = 530)
+        let dg = new Grid(Dock = DockStyle.Bottom, BorderStyle = BorderStyle.FixedSingle, Height=150)
+        let btnpnl = new Panel(Width = 420, Height = 40, Dock=DockStyle.Bottom)
         let pbtn = new System.Windows.Forms.Button(Text="Copy PGN",Dock=DockStyle.Left)
         let fbtn = new System.Windows.Forms.Button(Text="Copy \"FEN\"",Dock=DockStyle.Left)
         
@@ -182,7 +183,41 @@ module Controls =
         let showprom (mv,isw) = 
             let dprom = new DlgProm(mv,isw)
             dprom.ShowDialog() |> ignore
-        
+
+        //load results
+        let setmv(mvl:Move1 list) =
+            if mvl.Length>0 then
+                let mv = mvl.[mvl.Length-1]
+                dg.Rows.Clear()
+                dg.ColumnsCount <- 2
+                dg.Columns.[0].Width <-150
+                dg.Columns.[1].Width <-200
+                dg.Rows.Insert(0)
+                dg.[0, 0] <- new SourceGrid.Cells.Cell("Move Type", typedefof<string>)
+                dg.[0, 0].View <- viewRowHeader
+                dg.[0, 1] <- new SourceGrid.Cells.Cell(mv.Meval, typedefof<string>)
+                dg.Rows.Insert(1)
+                dg.[1, 0] <- new SourceGrid.Cells.Cell("Score Depth 10", typedefof<string>)
+                dg.[1, 0].View <- viewRowHeader
+                dg.[1, 1] <- new SourceGrid.Cells.Cell(mv.Scr10, typedefof<string>)
+                dg.Rows.Insert(2)
+                dg.[2, 0] <- new SourceGrid.Cells.Cell("Score Depth 25", typedefof<string>)
+                dg.[2, 0].View <- viewRowHeader
+                dg.[2, 1] <- new SourceGrid.Cells.Cell(mv.Scr25, typedefof<string>)
+                dg.Rows.Insert(3)
+                dg.[3, 0] <- new SourceGrid.Cells.Cell("Best Response", typedefof<string>)
+                dg.[3, 0].View <- viewRowHeader
+                dg.[3, 1] <- new SourceGrid.Cells.Cell(mv.Bresp, typedefof<string>)
+                dg.Rows.Insert(4)
+                dg.[4, 0] <- new SourceGrid.Cells.Cell("ECO Code", typedefof<string>)
+                dg.[4, 0].View <- viewRowHeader
+                dg.[4, 1] <- new SourceGrid.Cells.Cell(mv.ECO, typedefof<string>)
+                dg.Rows.Insert(5)
+                dg.[5, 0] <- new SourceGrid.Cells.Cell("FICS % Played", typedefof<string>)
+                dg.[5, 0].View <- viewRowHeader
+                dg.[5, 1] <- new SourceGrid.Cells.Cell(mv.FicsPc, typedefof<string>)
+                
+         
         do 
             sqs |> Array.iteri setsq
             sqs |> Array.iter sqpnl.Controls.Add
@@ -193,6 +228,7 @@ module Controls =
             rlbls |> Array.iteri rlbl
             rlbls |> Array.iter this.Controls.Add
             sqpnl |> this.Controls.Add
+            dg |> this.Controls.Add
             pbtn |> btnpnl.Controls.Add
             fbtn |> btnpnl.Controls.Add
             btnpnl |> this.Controls.Add
@@ -201,6 +237,7 @@ module Controls =
             pstt.PsSqsChng |> Observable.add highlightsqs
             pstt.Prom |> Observable.add showprom
             pstt.Ornt |> Observable.add orient
+            pstt.MvsChng |> Observable.add setmv
             pbtn.Click.Add(fun _ -> Clipboard.SetText({Lizard.PGN.Game.Blank() with Moves=pstt.Mvs}.ToString()))
             fbtn.Click.Add(fun _ -> Clipboard.SetText(pstt.Pos.ToString()))
     

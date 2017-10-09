@@ -298,7 +298,7 @@ module Controls =
         let selmv (e : RangeRegionChangedEventArgs) = 
             if e.AddedRange <> null && e.AddedRange.Count = 1 && dg.RowsCount > 1 then 
                 let cl = e.AddedRange.GetCellsPositions().[0]
-                if cl.Row > 0 && cl.Column > 0 && cl.Row < dg.RowsCount - 2 then 
+                if cl.Row > 0 && cl.Column > 0 then 
                     let v, m = vm (cl.Row, cl.Column)
                     vstt.GetPos(v, m)
                     //need to unhighlight previous one
@@ -320,7 +320,7 @@ module Controls =
             let nr, nc = 
                 if ci % 2 = 0 then ri + 1, ci - 1
                 else ri, ci + 1
-            if nr = dg.RowsCount - 2 || dg.[nr, nc].Value = null then ri, ci
+            if dg.[nr, nc] = null then ri, ci
             else gotoend nr nc
         
         // do navigation
@@ -344,7 +344,7 @@ module Controls =
                     | End -> gotoend r c
                     | PrevL -> r, c - 2
                     | NextL -> r, c + 2
-                if nc < dg.ColumnsCount && nc > 0 && nr < dg.RowsCount - 2 && nr > 0 then 
+                if nc < dg.ColumnsCount && nc > 0 && nr > 0 && dg.[nr, nc] <> null then 
                     let np = new Position(nr, nc)
                     dg.Selection.Focus(np, true) |> ignore
         

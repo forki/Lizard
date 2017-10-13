@@ -1,0 +1,235 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<FEN>
+<FENlong>rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1</FENlong>
+<Status>0</Status>
+<fenID>1000</fenID>
+<PlyN>1</PlyN>
+<MoveN>1</MoveN>
+<RClass>0</RClass>
+<Variant>0</Variant>
+<ECO>A00</ECO>
+<ECOName>Start position</ECOName>
+<MvList>
+<Mv>
+<n>3102007</n>
+<From>52</From>
+<To>36</To>
+<bw>1400543</bw>
+<ww>1462275</ww>
+<d>239189</d>
+<SAN>e4</SAN>
+<f>rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3</f>
+<move>5900</move>
+</Mv>
+<Mv>
+<move>5835</move>
+<SAN>d4</SAN>
+<f>rnbqkbnr/pppppppp/8/8/3P4/8/PPP1PPPP/RNBQKBNR b KQkq d3</f>
+<d>190000</d>
+<bw>983342</bw>
+<ww>1090901</ww>
+<To>35</To>
+<n>2264243</n>
+<From>51</From>
+</Mv>
+<Mv>
+<move>9542</move>
+<f>rnbqkbnr/pppppppp/8/8/8/5N2/PPPPPPPP/RNBQKB1R b KQkq -</f>
+<SAN>Nf3</SAN>
+<d>40873</d>
+<ww>233806</ww>
+<bw>203619</bw>
+<To>45</To>
+<From>62</From>
+<n>478298</n>
+</Mv>
+<Mv>
+<From>50</From>
+<n>430032</n>
+<To>34</To>
+<ww>217122</ww>
+<bw>175224</bw>
+<d>37686</d>
+<f>rnbqkbnr/pppppppp/8/8/2P5/8/PP1PPPPP/RNBQKBNR b KQkq c3</f>
+<SAN>c4</SAN>
+<move>5770</move>
+</Mv>
+<Mv>
+<ww>66132</ww>
+<bw>64486</bw>
+<To>46</To>
+<From>54</From>
+<n>138936</n>
+<move>5518</move>
+<f>rnbqkbnr/pppppppp/8/8/8/6P1/PPPPPP1P/RNBQKBNR b KQkq -</f>
+<SAN>g3</SAN>
+<d>8318</d>
+</Mv>
+<Mv>
+<n>125351</n>
+<From>57</From>
+<To>42</To>
+<bw>46061</bw>
+<ww>73746</ww>
+<d>5544</d>
+<SAN>Nc3</SAN>
+<f>rnbqkbnr/pppppppp/8/8/8/2N5/PPPPPPPP/R1BQKBNR b KQkq -</f>
+<move>9345</move>
+</Mv>
+<Mv>
+<From>52</From>
+<n>98927</n>
+<To>44</To>
+<ww>38450</ww>
+<bw>54153</bw>
+<d>6324</d>
+<f>rnbqkbnr/pppppppp/8/8/8/4P3/PPPP1PPP/RNBQKBNR b KQkq -</f>
+<SAN>e3</SAN>
+<move>5388</move>
+</Mv>
+<Mv>
+<f>rnbqkbnr/pppppppp/8/8/5P2/8/PPPPP1PP/RNBQKBNR b KQkq f3</f>
+<SAN>f4</SAN>
+<d>4807</d>
+<move>5965</move>
+<To>37</To>
+<From>53</From>
+<n>89330</n>
+<ww>41563</ww>
+<bw>42960</bw>
+</Mv>
+<Mv>
+<bw>43095</bw>
+<ww>40576</ww>
+<To>41</To>
+<n>88734</n>
+<From>49</From>
+<move>5193</move>
+<SAN>b3</SAN>
+<f>rnbqkbnr/pppppppp/8/8/8/1P6/P1PPPPPP/RNBQKBNR b KQkq -</f>
+<d>5063</d>
+</Mv>
+<Mv>
+<d>2692</d>
+<SAN>d3</SAN>
+<f>rnbqkbnr/pppppppp/8/8/8/3P4/PPP1PPPP/RNBQKBNR b KQkq -</f>
+<move>5323</move>
+<n>56369</n>
+<From>51</From>
+<To>43</To>
+<bw>29166</bw>
+<ww>24511</ww>
+</Mv>
+<Mv>
+<ww>9640</ww>
+<bw>9965</bw>
+<From>50</From>
+<n>20841</n>
+<To>42</To>
+<move>5258</move>
+<d>1236</d>
+<f>rnbqkbnr/pppppppp/8/8/8/2P5/PP1PPPPP/RNBQKBNR b KQkq -</f>
+<SAN>c3</SAN>
+</Mv>
+<Mv>
+<bw>8712</bw>
+<ww>8269</ww>
+<To>33</To>
+<n>17948</n>
+<From>49</From>
+<move>5705</move>
+<SAN>b4</SAN>
+<f>rnbqkbnr/pppppppp/8/8/1P6/8/P1PPPPPP/RNBQKBNR b KQkq b3</f>
+<d>967</d>
+</Mv>
+<Mv>
+<move>6030</move>
+<d>582</d>
+<SAN>g4</SAN>
+<f>rnbqkbnr/pppppppp/8/8/6P1/8/PPPPPP1P/RNBQKBNR b KQkq g3</f>
+<bw>6790</bw>
+<ww>6852</ww>
+<n>14224</n>
+<From>54</From>
+<To>38</To>
+</Mv>
+<Mv>
+<move>5453</move>
+<d>644</d>
+<f>rnbqkbnr/pppppppp/8/8/8/5P2/PPPPP1PP/RNBQKBNR b KQkq -</f>
+<SAN>f3</SAN>
+<ww>5914</ww>
+<bw>6514</bw>
+<From>53</From>
+<n>13072</n>
+<To>45</To>
+</Mv>
+<Mv>
+<n>8820</n>
+<From>55</From>
+<To>39</To>
+<bw>4168</bw>
+<ww>4229</ww>
+<d>423</d>
+<SAN>h4</SAN>
+<f>rnbqkbnr/pppppppp/8/8/7P/8/PPPPPPP1/RNBQKBNR b KQkq h3</f>
+<move>6095</move>
+</Mv>
+<Mv>
+<SAN>a3</SAN>
+<f>rnbqkbnr/pppppppp/8/8/8/P7/1PPPPPPP/RNBQKBNR b KQkq -</f>
+<d>498</d>
+<move>5128</move>
+<To>40</To>
+<n>8092</n>
+<From>48</From>
+<bw>3973</bw>
+<ww>3621</ww>
+</Mv>
+<Mv>
+<f>rnbqkbnr/pppppppp/8/8/8/7P/PPPPPPP1/RNBQKBNR b KQkq -</f>
+<SAN>h3</SAN>
+<d>341</d>
+<move>5583</move>
+<To>47</To>
+<From>55</From>
+<n>6873</n>
+<ww>3373</ww>
+<bw>3159</bw>
+</Mv>
+<Mv>
+<n>6633</n>
+<From>48</From>
+<To>32</To>
+<bw>2435</bw>
+<ww>3928</ww>
+<d>270</d>
+<SAN>a4</SAN>
+<f>rnbqkbnr/pppppppp/8/8/P7/8/1PPPPPPP/RNBQKBNR b KQkq a3</f>
+<move>5640</move>
+</Mv>
+<Mv>
+<SAN>Nh3</SAN>
+<f>rnbqkbnr/pppppppp/8/8/8/7N/PPPPPPPP/RNBQKB1R b KQkq -</f>
+<d>209</d>
+<move>9670</move>
+<To>47</To>
+<n>4329</n>
+<From>62</From>
+<bw>1743</bw>
+<ww>2377</ww>
+</Mv>
+<Mv>
+<SAN>Na3</SAN>
+<f>rnbqkbnr/pppppppp/8/8/8/N7/PPPPPPPP/R1BQKBNR b KQkq -</f>
+<d>56</d>
+<move>9217</move>
+<To>40</To>
+<n>1232</n>
+<From>57</From>
+<bw>403</bw>
+<ww>773</ww>
+</Mv>
+</MvList>
+<NumGames>6974291</NumGames>
+</FEN>

@@ -244,15 +244,7 @@ and TestState(sst : SharedState) =
 and AnalState(sst : SharedState) = 
     //Analyse
     let mutable isanl = false
-    let mutable proc = new System.Diagnostics.Process()
     let mutable procp = new System.Diagnostics.Process()
-    let mutable ln = ""
-    let mutable lnct = 0
-    let mutable mvct = 0
-    let mutable dpth = 0
-    let mutable lastmsg = ""
-    let mutable lastmsg1 = ""
-    let mutable lastmsg2 = ""
     //Events
     let apchngEvt = new Event<_>()
     let ahpchngEvt = new Event<_>()

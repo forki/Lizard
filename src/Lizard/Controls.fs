@@ -330,6 +330,7 @@ module Controls =
                                     if ingrey then viewCell2G else viewCell2
                     dg.[r,c] <- cell
             dg.AutoSizeCells()
+            hlcell <- None
         
         // selmv called when cell is selected
         let selmv (e : RangeRegionChangedEventArgs) = 

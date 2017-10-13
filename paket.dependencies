@@ -9,6 +9,7 @@ nuget FSharp.Core
 nuget DockPanelSuite
 nuget FsPickler.Json
 nuget SourceGrid
+nuget FSharp.Data
 nuget NUnit.Console
 nuget NUnit 
 nuget NUnit3TestAdapter

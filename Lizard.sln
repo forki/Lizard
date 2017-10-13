@@ -25,6 +25,8 @@ Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Upgrade", "src\Upgrade\Upgr
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "MvEval", "src\MvEval\MvEval.fsproj", "{F63A2CEA-92D8-44EF-82D5-919AC19A4B45}"
 EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Fics", "src\Fics\Fics.fsproj", "{D21839E5-EC53-4B63-A026-CE34A1678070}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -47,6 +49,10 @@ Global
 		{F63A2CEA-92D8-44EF-82D5-919AC19A4B45}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F63A2CEA-92D8-44EF-82D5-919AC19A4B45}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F63A2CEA-92D8-44EF-82D5-919AC19A4B45}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D21839E5-EC53-4B63-A026-CE34A1678070}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D21839E5-EC53-4B63-A026-CE34A1678070}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D21839E5-EC53-4B63-A026-CE34A1678070}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D21839E5-EC53-4B63-A026-CE34A1678070}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

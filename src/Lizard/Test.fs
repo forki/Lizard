@@ -152,7 +152,7 @@ module Test =
         else tst :: tstlst
     
     //get a ful array of test positions from a line
-    let rec fromLine (front:Lizard.Types.Move1 list) (rear:Lizard.Types.Move1 list) tests nm = 
+    let rec fromLine (front:Lizard.Types.Move list) (rear:Lizard.Types.Move list) tests nm = 
         if List.isEmpty rear then tests
         elif List.isEmpty rear.Tail then 
             ListAdd { Mvl = front
@@ -172,11 +172,11 @@ module Test =
     let fromVarn (vn : Lizard.Types.Varn) = 
         let tstlst = 
             if vn.Isw then 
-                vn.Brchs 
+                vn.Lines 
                 |> List.map 
                        (fun b -> fromLine [] b.Mvs [] (vn.Name))
             else 
-                vn.Brchs 
+                vn.Lines 
                 |> List.map 
                        (fun b -> 
                        fromLine [ b.Mvs.Head ] 
@@ -234,11 +234,11 @@ module Test =
         
         let tstlst = 
             if vn.Isw then 
-                vn.Brchs 
+                vn.Lines 
                 |> List.map 
                        (fun b -> fromLine [] b.Mvs [] (vn.Name))
             else 
-                vn.Brchs 
+                vn.Lines 
                 |> List.map 
                        (fun b -> 
                        fromLine [ b.Mvs.Head ] 

@@ -46,7 +46,7 @@ type PosnState(sst : SharedState) =
         if List.isEmpty x.Mvs then ""
         else 
             x.Mvs
-            |> List.map (fun (m : Move1) -> m.UCI)
+            |> List.map (fun (m : Move) -> m.UCI)
             |> List.reduce (fun a b -> a + " " + b)
     
     member x.PsSqs 
@@ -161,14 +161,14 @@ and VarnState(sst : SharedState) =
     
     member x.GetNextMvs() = 
         let pstt : PosnState = sst.Pstt
-        Varn.findnmvs pstt.Mvs curv.Brchs
+        Varn.findnmvs pstt.Mvs curv.Lines
     
     member x.DoNextMv(mv) = 
         let pstt : PosnState = sst.Pstt
         let move = pstt.Pos.GetMv(mv)
         pstt.Pos.DoMv(move)
         pstt.Mvs <- pstt.Mvs @ [ move ]
-        let oselvar = Varn.findsv pstt.Mvs curv.Brchs
+        let oselvar = Varn.findsv pstt.Mvs curv.Lines
         if oselvar.IsSome then 
             selvar <- oselvar.Value
             let selmv = pstt.Mvs.Length - 1
@@ -318,7 +318,7 @@ and SharedState() as x =
             let curv = vstt.CurVarn
             curv |> vstt.TrigCurv
             //update selected cell
-            let oselvar = Varn.findsv pstt.Mvs curv.Brchs
+            let oselvar = Varn.findsv pstt.Mvs curv.Lines
             if oselvar.IsSome then 
                 vstt.SetVar(oselvar.Value)
                 let selvar = vstt.SelVar

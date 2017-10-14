@@ -63,7 +63,7 @@ let beplPgn3 =
 let getmvl pgn =
      let gms = PGN.ReadFromString pgn
      let gm = gms.Head
-     {Mvs=gm.Moves}
+     {ECO="";Mvs=gm.Moves}
 
 let mvl1 = getmvl weprPgn
 let mvl2 = getmvl weplPgn
@@ -72,21 +72,21 @@ let mvl4 = getmvl beplPgn
 let mvll = [mvl1;mvl2;mvl3;mvl4]
 let mvl5 = getmvl beplPgn2
 let mvl6 = getmvl beplPgn3
-let vrn = {Varn.emp with Brchs=mvll}
+let vrn = {Varn.emp with Lines=mvll}
 
 [<Test>]
 let ``Varn cur``() =
     let ans = Varn.cur ("Test", true)
     ans.Name|>shouldEqual "Test"
     ans.Isw|>shouldEqual true
-    ans.Brchs.Length|>shouldEqual 0
+    ans.Lines.Length|>shouldEqual 0
 
 [<Test>]
 let ``Varn emp``() =
     let ans = Varn.emp
     ans.Name|>shouldEqual "NotSet"
     ans.Isw|>shouldEqual true
-    ans.Brchs.Length|>shouldEqual 0
+    ans.Lines.Length|>shouldEqual 0
 
 [<Test>]
 let ``Varn findsv``() =
@@ -142,14 +142,14 @@ let ``Varn add``() =
     let ans = Varn.add vrn mvl1.Mvs
     let ans2 = Varn.add vrn mvl5.Mvs
     let ans3 = Varn.add vrn mvl6.Mvs
-    ans.Brchs.Length|>shouldEqual 4
-    ans2.Brchs.Length|>shouldEqual 5
-    ans3.Brchs.Length|>shouldEqual 4
+    ans.Lines.Length|>shouldEqual 4
+    ans2.Lines.Length|>shouldEqual 5
+    ans3.Lines.Length|>shouldEqual 4
 
 [<Test>]
 let ``Varn del``() =
     let ans = Varn.del vrn 0
-    ans.Brchs.Length|>shouldEqual 3
+    ans.Lines.Length|>shouldEqual 3
     (fun () -> Varn.del vrn 5 |> ignore)|>shouldFail<System.IndexOutOfRangeException>
     (fun () -> Varn.del vrn 6 |> ignore)|>shouldFail<System.IndexOutOfRangeException>
 

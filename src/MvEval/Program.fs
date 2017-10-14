@@ -123,9 +123,65 @@ let main argv =
         let nlines = var.Brchs|>List.map getline
         let nvar = {var with Brchs=nlines}
         nvar|>Varn.save|>ignore
-    wvars()|>List.iter(fun nm -> updscr25(nm,true))
-    bvars()|>List.iter(fun nm -> updscr25(nm,false))
+    //wvars()|>List.iter(fun nm -> updscr25(nm,true))
+    //bvars()|>List.iter(fun nm -> updscr25(nm,false))
 
+    let fixscr(nm,isw) =
+        let var = load(nm,isw)
+        let mutable same=true
+        let mutable prevline = var.Brchs.[0]
+        let getline l line =
+            let getmv i (mv:Move1) =
+                if i=0 then same<-true
+                Console.WriteLine(nm + " " + i.ToString() + " " + mv.Mpgn)
+                if same then
+                    let prevmv = prevline.Mvs.[i]
+                    if prevmv.Mpgn=mv.Mpgn then
+                        {mv with Scr10=prevmv.Scr10;Scr25=prevmv.Scr25;Bresp=prevmv.Bresp}
+                    else 
+                        same <- false
+                        mv
+                 else mv
+            if l=0 then 
+                line
+            else
+                let nmvs = line.Mvs|>List.mapi getmv
+                prevline <- {line with Mvs=nmvs}
+                prevline
+    
+        let nlines = var.Brchs|>List.mapi getline
+        let nvar = {var with Brchs=nlines}
+        nvar|>Varn.save|>ignore
+    wvars()|>List.iter(fun nm -> fixscr(nm,true))
+    bvars()|>List.iter(fun nm -> fixscr(nm,false))
+
+
+    let updmve(nm,isw) =
+        let var = load(nm,isw)
+        let getline line =
+            let getmv i (mv:Move1) =
+                Console.WriteLine(nm + " " + i.ToString() + " " + mv.Mpgn)
+                if i=0 then mv
+                else
+                    let prevmv = line.Mvs.[i-1]
+                    if prevmv.Bresp=mv.Mpgn then 
+                        {mv with Meval=MvEval.Excellent}
+                    elif abs(mv.Scr25-mv.Scr10)>20 then
+                        {mv with Meval=MvEval.Surprising}
+                    elif prevmv.Scr25+mv.Scr25>20 then
+                        {mv with Meval=MvEval.Weak}
+                    else
+                        {mv with Meval=MvEval.Normal}
+    
+            let nmvs = line.Mvs|>List.mapi getmv
+            let nline = {line with Mvs=nmvs}
+            nline
+    
+        let nlines = var.Brchs|>List.map getline
+        let nvar = {var with Brchs=nlines}
+        nvar|>Varn.save|>ignore
+    wvars()|>List.iter(fun nm -> updmve(nm,true))
+    bvars()|>List.iter(fun nm -> updmve(nm,false))
 
 
     0 // return an integer exit code

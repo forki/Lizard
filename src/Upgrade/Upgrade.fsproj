@@ -57,7 +57,6 @@
     <Compile Include="AssemblyInfo.fs" />
     <Compile Include="Ref.fs" />
     <Compile Include="Types.fs" />
-    <Compile Include="Opts.fs" />
     <Compile Include="Program.fs" />
     <None Include="App.config" />
     <None Include="paket.references" />

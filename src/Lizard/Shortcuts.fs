@@ -27,6 +27,8 @@ module Shortcuts =
     
     let viewColHeader = 
         new Cells.Views.ColumnHeader(Background = new ColumnHeader(BackColor = Color.Green))
+    let viewColHeaderRed = 
+        new Cells.Views.ColumnHeader(Background = new ColumnHeader(BackColor = Color.Green), ForeColor = Color.Red)
     let viewRowHeader = 
         new Cells.Views.RowHeader(Background = new RowHeader(BackColor = Color.Green))
     let viewCell1 = new Cells.Views.Cell(BackColor = Color.LightGreen)
@@ -42,33 +44,5 @@ module Shortcuts =
                              ForeColor = Color.DarkGreen)
     let redCell = 
         new Cells.Views.Cell(BackColor = Color.White, ForeColor = Color.Red)
-    
-    let colhd txt = 
-        let ans = new Cells.ColumnHeader(txt)
-        ans.View <- viewColHeader
-        ans
-    
-    let whtcl txt = 
-        let ans = new Cells.Cell(txt)
-        ans.View <- viewCell2
-        ans
-    
-    let grncl txt = 
-        let ans = new Cells.Cell(txt)
-        ans.View <- viewCell1
-        ans
-    
-    let wgrncl txt = 
-        let ans = new Cells.Cell(txt)
-        ans.View <- greenCell
-        ans
-    
-    let pgrncl txt = 
-        let ans = new Cells.Cell(txt)
-        ans.View <- viewCell3
-        ans
-    
-    ///Convert Source Grid grid (sg) to Array2d of cells
-    let toArray2D (sg : Grid) = 
-        let ans = Array2D.zeroCreate sg.RowsCount sg.ColumnsCount
-        ans |> Array2D.mapi (fun r c _ -> sg.[r, c])
+    let viewSelCell = new Cells.Views.Cell(BackColor = Color.Yellow)
+   

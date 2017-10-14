@@ -16,7 +16,7 @@ let main argv =
             let mutable fics = FICS.Load("http://www.ficsgames.org/cgi-bin/explorer.cgi?FEN=" + fen)
             let mutable eco = ""
             let mutable fin = false
-            let getmv i (mv:Move1) =
+            let getmv i (mv:Move) =
                 if mv.ECO<>"" then mv
                 elif fin then {mv with ECO=eco;FicsPc=0.0}
                 else
@@ -48,16 +48,34 @@ let main argv =
             let nline = {line with Mvs=nmvs}
             nline
 
-        let nlines = var.Brchs|>List.mapi getline
-        let nvar = {var with Brchs=nlines}
+        let nlines = var.Lines|>List.mapi getline
+        let nvar = {var with Lines=nlines}
         nvar|>Varn.save|>ignore
 
 
-    wvars()|>List.iter(fun nm -> updfics(nm,true))
-    bvars()|>List.iter(fun nm -> updfics(nm,false))
+    //wvars()|>List.iter(fun nm -> updfics(nm,true))
+    //bvars()|>List.iter(fun nm -> updfics(nm,false))
 
-
-
+    let v = load("Benko",true)
+    let v = load("CzechBenoni",true)
+    let v = load("Grunfeld",true)
+    let v = load("ModernBenoni",true)
+    let v = load("Nimzo",true)
+    let v = load("Old Indian",true)
+    let v = load("QGA",true)
+    let v = load("QGD",true)
+    let v = load("Slav",true)
+    let v = load("Unusual",true)
+    let v = load("Abrahams",false)
+    let v = load("Flank",false)
+    let v = load("French-d3",false)
+    let v = load("French-e5",false)
+    let v = load("FrenchMisc",false)
+    let v = load("FrenchNc3",false)
+    let v = load("FrenchNc3_e5",false)
+    let v = load("FrenchNd2",false)
+    let v2 = {v with ECO=v.Lines.[0].Mvs.[4].ECO}
+    v2|>Varn.save|>ignore
 
 
     0 // return an integer exit code

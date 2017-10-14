@@ -11,9 +11,10 @@ open Lizard
 
 module Controls = 
     type Board() as this = 
-        inherit DockContent(Icon = ico "board.ico", CloseButtonVisible = false, Text = "Board")
+        inherit DockContent(Icon = ico "board.ico", CloseButtonVisible = false, Text = "Variation: None Selected")
         let mutable sqTo = -1
         let mutable cCur = Cursors.Default
+        let bdpnl = new Panel(Dock=DockStyle.Top,Height = 480)
         let sqpnl = new Panel(Width = 420, Height = 420, Left = 29, Top = 13)
         
         let edges = 
@@ -29,6 +30,8 @@ module Controls =
         let btnpnl = new Panel(Width = 420, Height = 40, Dock=DockStyle.Bottom)
         let pbtn = new System.Windows.Forms.Button(Text="Copy PGN",Dock=DockStyle.Left)
         let fbtn = new System.Windows.Forms.Button(Text="Copy \"FEN\"",Dock=DockStyle.Left)
+        let bklbl = new Label(Text="",Dock=DockStyle.Top)
+        let lnlbl = new Label(Text="Line: None Selected",Dock=DockStyle.Top)
         
         /// get cursor given char
         let getcur c = 
@@ -185,7 +188,7 @@ module Controls =
             dprom.ShowDialog() |> ignore
 
         //load results
-        let setmv(mvl:Move1 list) =
+        let setmv(mvl:Move list) =
             if mvl.Length>0 then
                 let mv = mvl.[mvl.Length-1]
                 dg.Rows.Clear()
@@ -209,25 +212,25 @@ module Controls =
                 dg.[3, 0].View <- viewRowHeader
                 dg.[3, 1] <- new SourceGrid.Cells.Cell(mv.Bresp, typedefof<string>)
                 dg.Rows.Insert(4)
-                dg.[4, 0] <- new SourceGrid.Cells.Cell("ECO Code", typedefof<string>)
+                dg.[4, 0] <- new SourceGrid.Cells.Cell("FICS % Played", typedefof<string>)
                 dg.[4, 0].View <- viewRowHeader
-                dg.[4, 1] <- new SourceGrid.Cells.Cell(mv.ECO, typedefof<string>)
-                dg.Rows.Insert(5)
-                dg.[5, 0] <- new SourceGrid.Cells.Cell("FICS % Played", typedefof<string>)
-                dg.[5, 0].View <- viewRowHeader
-                dg.[5, 1] <- new SourceGrid.Cells.Cell(mv.FicsPc, typedefof<string>)
-                
+                dg.[4, 1] <- new SourceGrid.Cells.Cell(mv.FicsPc.ToString("P"), typedefof<string>)
+                lnlbl.Text <- "Line: " + mv.ECO
          
         do 
             sqs |> Array.iteri setsq
             sqs |> Array.iter sqpnl.Controls.Add
             pstt.Pos |> setpcs
-            edges |> List.iter this.Controls.Add
+            edges |> List.iter bdpnl.Controls.Add
             flbls |> Array.iteri flbl
-            flbls |> Array.iter this.Controls.Add
+            flbls |> Array.iter bdpnl.Controls.Add
             rlbls |> Array.iteri rlbl
-            rlbls |> Array.iter this.Controls.Add
-            sqpnl |> this.Controls.Add
+            rlbls |> Array.iter bdpnl.Controls.Add
+            sqpnl |> bdpnl.Controls.Add
+            bdpnl |>this.Controls.Add
+            lnlbl |> this.Controls.Add
+            bklbl |> this.Controls.Add
+
             dg |> this.Controls.Add
             pbtn |> btnpnl.Controls.Add
             fbtn |> btnpnl.Controls.Add
@@ -240,7 +243,8 @@ module Controls =
             pstt.MvsChng |> Observable.add setmv
             pbtn.Click.Add(fun _ -> Clipboard.SetText({Lizard.PGN.Game.Blank() with Moves=pstt.Mvs}.ToString()))
             fbtn.Click.Add(fun _ -> Clipboard.SetText(pstt.Pos.ToString()))
-    
+            vstt.CurChng |> Observable.add(fun v -> this.Text <- v.ECO)
+
     type Nav = 
         | Home
         | Prev
@@ -269,13 +273,12 @@ module Controls =
             new Grid(Dock = DockStyle.Fill, BorderStyle = BorderStyle.FixedSingle, FixedRows = 1, FixedColumns = 1, 
                      EnableSort = false)
         let mutable hlcell:Option<int*int*Cells.Views.IView> = None
-        let viewSelCell = new Cells.Views.Cell(BackColor = Color.Yellow)
         
         // updateLV
         let updateLV() = 
             let nmvs = vstt.GetNextMvs()
             nextmvs.Items.Clear()
-            let addit (m : Move1) = 
+            let addit (m : Move) = 
                 let itm = new ListViewItem()
                 itm.Text <- m.Mpgn
                 itm.Tag <- m.Mpgn
@@ -294,7 +297,7 @@ module Controls =
         // updateVariation
         let updVarn (curv:Varn) = 
             this.Text<-curv.Name
-            let numcols = curv.Brchs.Length * 2
+            let numcols = curv.Lines.Length * 2
             let numrows = ((curv|>Varn.maxl) + 1 )/ 2
             dg.Rows.Clear()
             dg.Rows.Insert(0)
@@ -314,12 +317,19 @@ module Controls =
                 rowheader.View <- viewRowHeader
                 dg.[r, 0] <- rowheader
             //add moves
-            let brchs = curv.Brchs
+            let brchs = curv.Lines
             for b=0 to brchs.Length-1 do
                 let brch = brchs.[b].Mvs
                 let mutable ingrey = false
                 for i = 0 to brch.Length-1 do
-                    let cell = new SourceGrid.Cells.Cell(brch.[i].Mpgn, typedefof<string>)
+                    let mv = brch.[i]
+                    let suf = 
+                        match mv.Meval with
+                        |Normal -> ""
+                        |Weak -> "?"
+                        |Excellent -> "!"
+                        |Surprising -> "!?"
+                    let cell = new SourceGrid.Cells.Cell(mv.Mpgn + suf, typedefof<string>)
                     ingrey <- 
                         b>0 && i=0 && brchs.[b].Mvs.[0].Mpgn=brchs.[b-1].Mvs.[0].Mpgn //initial set
                         || ingrey && brchs.[b].Mvs.[i].Mpgn=brchs.[b-1].Mvs.[i].Mpgn //already set and still the same 
@@ -329,6 +339,17 @@ module Controls =
                                  else 
                                     if ingrey then viewCell2G else viewCell2
                     dg.[r,c] <- cell
+                //set header color if losing
+                let lst = brch.Length-1
+                let scr = brch.[lst].Scr25
+                let _,c = rc(b,lst)
+                if curv.Isw && scr>0 then
+                    dg.[0,c].View <- viewColHeaderRed
+                    dg.[0,c+1].View <- viewColHeaderRed
+                if (not curv.Isw) && scr>0 then
+                    dg.[0,c].View <- viewColHeaderRed
+                    dg.[0,c-1].View <- viewColHeaderRed
+
             dg.AutoSizeCells()
             hlcell <- None
         

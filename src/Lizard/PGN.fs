@@ -56,7 +56,7 @@ module PGN =
           White : string
           Black : string
           Result : GameResult
-          Moves : Move1 list }
+          Moves : Move list }
         
         member x.DateStr = 
             (if x.Year.IsNone then "????"

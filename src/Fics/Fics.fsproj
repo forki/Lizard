@@ -56,7 +56,6 @@
   <ItemGroup>
     <Compile Include="Ref.fs" />
     <Compile Include="Types.fs" />
-    <Compile Include="Pos.fs" />
     <Compile Include="Varn.fs" />
     <Compile Include="AssemblyInfo.fs" />
     <Compile Include="Program.fs" />

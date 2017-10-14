@@ -51,7 +51,7 @@ type Pos(isqs : char [], iisw : bool) =
     static member Start() = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w" |> Pos.FromString
     
     /// loads Pos given a Move list
-    static member FromMoves(imvl : Move1 list) = 
+    static member FromMoves(imvl : Move list) = 
         let rec domvs mvl (pos : Pos) = 
             if List.isEmpty mvl then pos
             else 
@@ -85,11 +85,11 @@ type Pos(isqs : char [], iisw : bool) =
     
     /// Make a move
     member x.Mv(s : string) = 
-        let mv : Move1 = x.GetMv s
+        let mv : Move = x.GetMv s
         mv |> x.DoMv
     
     /// Make a move
-    member x.DoMv(mv : Move1) = 
+    member x.DoMv(mv : Move) = 
         x.IsW <- not x.IsW
         let c = x.Sqs.[mv.Mfrom]
         x.Sqs.[mv.Mfrom] <- ' '

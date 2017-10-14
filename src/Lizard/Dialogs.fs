@@ -8,7 +8,7 @@ open Lizard.Types
 
 module Dialogs = 
     //dialog for Promotion
-    type DlgProm(mv : Move1, isw : bool) as this = 
+    type DlgProm(mv : Move, isw : bool) as this = 
         inherit Form(Text = "Select Piece", Height = 78, Width = 182, FormBorderStyle = FormBorderStyle.FixedToolWindow)
         let sqs : PictureBox [] = Array.zeroCreate 4
         

@@ -4,6 +4,7 @@
 This project contains a tools to manage chess openings and some other chess utilities.
 
 This program was built using Visual Studio 2017.
+
 ![Screenshot](screenshot.png)
 
 

@@ -334,7 +334,7 @@ module Controls =
                         b>0 && i=0 && brchs.[b].Mvs.[0].Mpgn=brchs.[b-1].Mvs.[0].Mpgn //initial set
                         || ingrey && brchs.[b].Mvs.[i].Mpgn=brchs.[b-1].Mvs.[i].Mpgn //already set and still the same 
                     let r,c = rc(b,i)
-                    cell.View <- if c % 4 = 0 || (c + 1) % 4 = 0 then
+                    cell.View <- if c % 2 = 0 then
                                     if ingrey then viewCell1G else viewCell1 
                                  else 
                                     if ingrey then viewCell2G else viewCell2

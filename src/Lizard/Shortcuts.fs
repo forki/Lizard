@@ -24,6 +24,7 @@ module Shortcuts =
     //views used
     open SourceGrid
     open DevAge.Drawing.VisualElements
+    open DevAge.Drawing
     
     let viewColHeader = 
         new Cells.Views.ColumnHeader(Background = new ColumnHeader(BackColor = Color.Green))
@@ -31,10 +32,11 @@ module Shortcuts =
         new Cells.Views.ColumnHeader(Background = new ColumnHeader(BackColor = Color.Green), ForeColor = Color.Red)
     let viewRowHeader = 
         new Cells.Views.RowHeader(Background = new RowHeader(BackColor = Color.Green))
-    let viewCell1 = new Cells.Views.Cell(BackColor = Color.LightGreen)
+    let viewCell1 = new Cells.Views.Cell(BackColor = Color.White,Border=RectangleBorder(BorderLine.Black1Width, BorderLine.NoBorder))
     let viewCell1G = 
-        new Cells.Views.Cell(BackColor = Color.LightGreen, 
-                             ForeColor = Color.Gray)
+        new Cells.Views.Cell(BackColor = Color.White, 
+                             ForeColor = Color.Gray,
+                             Border=RectangleBorder(BorderLine.Black1Width, BorderLine.NoBorder))
     let viewCell3 = new Cells.Views.Cell(BackColor = Color.LimeGreen)
     let viewCell2 = new Cells.Views.Cell(BackColor = Color.White)
     let viewCell2G = 

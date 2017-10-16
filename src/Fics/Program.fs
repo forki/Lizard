@@ -2,6 +2,7 @@
 open FSharp.Data
 open Lizard
 open Lizard.Varn
+open System.IO
 
 type FICS = XmlProvider<"explorer.cgi.xml">
 
@@ -75,7 +76,54 @@ let main argv =
     let v = load("FrenchNc3_e5",false)
     let v = load("FrenchNd2",false)
     let v2 = {v with ECO=v.Lines.[0].Mvs.[4].ECO}
-    v2|>Varn.save|>ignore
+    //v2|>Varn.save|>ignore
 
+    let getmiss(nm,isw) =
+        let var = load(nm,isw)
+        let ans = System.Collections.Generic.Dictionary<string, string list>()
+        let doline il line =
+            System.Console.WriteLine(nm + " on line: " + il.ToString())
+            let mutable fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
+            let mutable fics = FICS.Load("http://www.ficsgames.org/cgi-bin/explorer.cgi?FEN=" + fen)
+            let mutable fin = false
+            let domv i (mv:Move) =
+                if not fin  then
+                    let pgn = mv.Mpgn
+                    let fmvs = fics.MvList
+                    if fmvs.Length=0 then 
+                        fin <- true
+                    else
+                        //find missing moves
+                        if i>6 && (not (ans.ContainsKey(fen))) && ((i%2=1 && isw)||(i%2=0 && not isw)) then
+                            let mb=line.Mvs.[0..i-1]
+                            let curbs = var.Lines
+                            let nmvs = Varn.findnmvs mb curbs
+                            let set = nmvs|>List.map(fun m -> m.Mpgn)|>Set.ofList
+                            let lim = max (fics.NumGames/20) 50
+                            let fset = fmvs|>Array.filter(fun m -> m.N>lim)|>Array.map(fun m -> m.San)|>Set.ofArray
+                            let extra = (fset-set)|>Set.toList
+                            if not (List.isEmpty extra) then
+                                ans.[fen] <- extra
+                        
+                        //now get next fen
+                        let fmvl = (fmvs|>Array.filter(fun m -> m.San=pgn))
+                        if fmvl.Length=0 then
+                            fin <- true
+                        else
+                            let fmv = fmvl.[0]
+                            try
+                                fen <- fmv.F
+                            with _ -> fin <- true
+                            fics <- FICS.Load("http://www.ficsgames.org/cgi-bin/explorer.cgi?FEN=" + fen)
+            line.Mvs|>List.iteri domv
+
+        var.Lines|>List.iteri doline
+        let lns = ans|>Seq.map(fun d -> d.Key + " : " + (d.Value|>List.reduce(fun a b -> a + " " + b)))
+        let fn = "miss" + var.Name + ".txt"
+        File.AppendAllLines(fn,lns)
+
+    wvars()|>List.iter(fun nm -> getmiss(nm,true))
+    bvars()|>List.iter(fun nm -> getmiss(nm,false))
+           
 
     0 // return an integer exit code

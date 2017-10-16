@@ -24,7 +24,7 @@ module Types =
     type Sq = int
     
     /// Move type including eval
-    type Move1 = 
+    type Move = 
         { Mfrom : Sq
           Mto : Sq
           Mtyp : MvTyp
@@ -43,17 +43,19 @@ module Types =
             | _ -> mv
     
     //storage of variations
-    type Line1 = 
-        { Mvs : Move1 list }
+    type Line = 
+        { ECO : string
+          Mvs : Move list }
     type Varn = 
         { Name : string
           Isw : bool
-          Brchs : Line1 list }
+          ECO : string
+          Lines : Line list }
     
     //test - records of tests
     type TestDet = 
-        { Mvl : Move1 list
-          Mv : Move1
+        { Mvl : Move list
+          Mv : Move
           Vnname : string
           Status : string }
     
@@ -64,52 +66,3 @@ module Types =
           Dte : DateTime
           Res : int }
     
-    //linstr - store of analysis
-    type Linstr = System.Collections.Generic.Dictionary<string, string>
-    
-    //enganl - record of engine analysis results
-    type Enganl = 
-        { Depth : int
-          Scr : int
-          Bestmv : string
-          Resp : string
-          BmPGN : string
-          RmPGN : string }
-    
-    //engbm - record of engine best moves
-    type Engbm = 
-        { Bnum : int
-          Bisw : bool
-          BPGN : string
-          Bstr : string
-          Bscr : int }
-    
-    //options - record of all options
-    type Options = 
-        { Opnfol : string
-          Tstfol : string
-          Engfol : string
-          Rnum : int
-          Rskip : int
-          Lnum : int
-          Lskip : int
-          Emaxdepth : int
-          Elog : bool }
-    
-    //ficsdata
-    type Ficsmv = 
-        { Fpgn : string
-          Wpc : float
-          Dpc : float
-          Bpc : float
-          Fnum : int }
-    
-    type Ficsdata = 
-        { FENlong : string
-          ECO : string
-          ECOName : string
-          NumGames : int
-          MvList : Ficsmv [] }
-    
-    //fdbstr - store of Fics DB data
-    type Fdbstr = System.Collections.Generic.Dictionary<string, Ficsdata>

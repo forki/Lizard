@@ -9,23 +9,28 @@ module Varn =
     let cur (nm, isw) = 
         { Name = nm
           Isw = isw
-          Brchs = [] }
+          ECO = ""
+          Lines = [] }
     
     let emp = 
         { Name = "NotSet"
           Isw = true
-          Brchs = [] }
+          ECO = ""
+          Lines = [] }
     
+    //utility function to convert move list to string list
+    let mvl2sl (mvl:Move list) = mvl|>List.map(fun m -> m.Mpgn)
+
     ///findsv - finds the selvar given move list and set of move lists
-    let findsv (mb : Move1 list) (curbs : Line1 list) = 
+    let findsv (mb : Move list) (curbs : Line list) = 
         //function to find match
-        let mtch (l : Line1) = l.Mvs.Length >= mb.Length && l.Mvs.[0..mb.Length - 1] = mb
+        let mtch (l : Line) = l.Mvs.Length >= mb.Length && (l.Mvs.[0..mb.Length - 1]|>mvl2sl) = (mb|>mvl2sl)
         curbs |> List.tryFindIndex mtch
     
     ///findnmvs - finds the next moves given move list and set of move lists
-    let findnmvs (mb : Move1 list) (curbs : Line1 list) = 
+    let findnmvs (mb : Move list) (curbs : Line list) = 
         //function to find match with extra move
-        let mtch (l : Line1) = l.Mvs.Length > mb.Length && l.Mvs.[0..mb.Length - 1] = mb
+        let mtch (l : Line) = l.Mvs.Length > mb.Length && (l.Mvs.[0..mb.Length - 1]|>mvl2sl) = (mb|>mvl2sl)
         curbs
         |> List.filter mtch
         |> List.map (fun l -> l.Mvs.[mb.Length])
@@ -33,12 +38,12 @@ module Varn =
         |> Set.toList
     
     //function to find length same for two move lists
-    let rec smmv m1 m2 no = 
-        if List.isEmpty m1 || List.isEmpty m2 || m1.Head <> m2.Head then no
+    let rec smmv (m1:Move list) (m2:Move list) no = 
+        if List.isEmpty m1 || List.isEmpty m2 || m1.Head.Mpgn <> m2.Head.Mpgn then no
         else smmv m1.Tail m2.Tail (no + 1)
     
     //function to find index of best match
-    let rec fndidx (rear:Line1 list) cidx no idx mb = 
+    let rec fndidx (rear:Line list) cidx no idx mb = 
         if List.isEmpty rear then idx
         else 
             let curb = rear.Head
@@ -55,7 +60,7 @@ module Varn =
             fndidx rear.Tail (cidx + 1) nno nidx mb
     
     ///mrgbrch - merges a new branch into a list of branches
-    let mrgbrch (mb : Move1 list) (curbs : Line1 list) = 
+    let mrgbrch (mb : Move list) (curbs : Line list) = 
         // either same as existing branch and then either do nothing or replace
         // or extra branch and need to put next to the nearest
         
@@ -63,10 +68,10 @@ module Varn =
         let rec addex front rear fnd = 
             if List.isEmpty rear then front, fnd
             else 
-                let curb:Move1 list = (rear.Head).Mvs
-                if curb.Length < mb.Length && curb = mb.[0..curb.Length - 1] then 
-                    (front @ {Mvs=mb} :: rear.Tail), true
-                elif curb.Length >= mb.Length && curb.[0..mb.Length - 1] = mb.[0..mb.Length - 1]  then 
+                let curb:Move list = (rear.Head).Mvs
+                if curb.Length < mb.Length && (curb|>mvl2sl) = (mb.[0..curb.Length - 1]|>mvl2sl) then 
+                    (front @ {ECO="";Mvs=mb} :: rear.Tail), true
+                elif curb.Length >= mb.Length && (curb.[0..mb.Length - 1]|>mvl2sl) = (mb.[0..mb.Length - 1]|>mvl2sl)  then 
                     (front @ rear), true
                 else addex (front @ [ rear.Head ]) rear.Tail false
         
@@ -81,18 +86,18 @@ module Varn =
             let rear = 
                 if nidx < curbs.Length - 1 then curbs.[nidx + 1..curbs.Length - 1]
                 else []
-            frnt @ {Mvs=mb} :: rear
+            frnt @ {ECO="";Mvs=mb} :: rear
     
     ///add - updates the variation with moves from a game move history
-    let add (cur : Varn) (mvl : Move1 list) = 
+    let add (cur : Varn) (mvl : Move list) = 
         //don't add if wrong colour
         if mvl.Length = 0 then cur
-        elif List.isEmpty cur.Brchs then { cur with Brchs = [ {Mvs=mvl} ] }
-        else { cur with Brchs = mrgbrch mvl cur.Brchs }
+        elif List.isEmpty cur.Lines then { cur with Lines = [ {ECO="";Mvs=mvl} ] }
+        else { cur with Lines = mrgbrch mvl cur.Lines }
     
     ///del - deletes a line from the variation given index of branch to delete
     let del cur (sel : int) = 
-        let brs = cur.Brchs
+        let brs = cur.Lines
         let abrs = brs |> List.toArray
         
         let nbrs1 = 
@@ -103,18 +108,18 @@ module Varn =
             if sel = abrs.Length - 1 then []
             else (List.ofArray abrs.[sel + 1..abrs.Length - 1])
         
-        { cur with Brchs = nbrs1 @ nbrs2 }
+        { cur with Lines = nbrs1 @ nbrs2 }
     
     //maxl - gets the maximum line length
     let maxl curv =
         let mutable ans = 0
-        curv.Brchs |> List.iter (fun line -> 
+        curv.Lines |> List.iter (fun line -> 
                       if line.Mvs.Length > ans then ans <- line.Mvs.Length)
         ans
     
     ///mvl - gets a move list given a cur and the column and the row
     let mvl (cur, cl, rwi) = 
-        let fmvl = cur.Brchs.[cl]
+        let fmvl = cur.Lines.[cl]
         
         let rw = 
             if rwi < fmvl.Mvs.Length then rwi
@@ -154,7 +159,7 @@ module Varn =
     
     /// cur2txt - generates array of string of moves from cur varn
     let cur2txt cur = 
-        cur.Brchs
+        cur.Lines
         |> List.map (fun l -> l.Mvs|>List.map(fun m -> m.UCI)|>List.reduce(fun a b -> a + " " + b))
         |> List.toArray
     
@@ -194,12 +199,13 @@ module Varn =
         
         let brs = 
             vnnames
-            |> List.map (fun nm -> (load (nm, isw)).Brchs)
+            |> List.map (fun nm -> (load (nm, isw)).Lines)
             |> List.concat
         
         { Name = nm
           Isw = isw
-          Brchs = brs }
+          ECO = ""
+          Lines = brs }
     
     ///load - deserializes to a text array from a file
     let loadtxt (nm, isw) = 

@@ -31,11 +31,26 @@ let main argv =
         prc.Start() |> ignore
         prc.BeginOutputReadLine()
 
+    let scr10s = new System.Collections.Generic.Dictionary<string,int>()
+    let scr25s = new System.Collections.Generic.Dictionary<string,int>()
+    let bresps = new System.Collections.Generic.Dictionary<string,string>()
+
     let updscr10(nm,isw) =
         let var = load(nm,isw)
         let getline line =
-            let getmv i (mv:Move1) =
-                if mv.Scr10<>0 then mv
+            let pos = Pos.Start() 
+            let getmv i (mv:Move) =
+                Console.WriteLine(nm + " " + i.ToString() + " " + mv.Mpgn)
+                mv|>pos.DoMv
+                let fen = pos.ToString()
+                if scr10s.ContainsKey(fen) then
+                    let scr10 = scr10s.[fen]
+                    if scr10=mv.Scr10 then mv
+                    else
+                        {mv with Scr10=scr10}
+                elif mv.Scr10<>0 then 
+                    scr10s.[fen]<-mv.Scr10
+                    mv
                 else
                     let procp = new System.Diagnostics.Process()
                     let eng = "stockfish.exe"
@@ -56,32 +71,43 @@ let main argv =
                     // call calcs
                     // need to send game position moves as UCI
                     let mvstr = line.Mvs.[0..i]
-                                |> List.map (fun (m : Move1) -> m.UCI)
+                                |> List.map (fun (m : Move) -> m.UCI)
                                 |> List.reduce (fun a b -> a + " " + b)
 
                     ComputeAnswer(mvstr, 10, procp)
                     procp.WaitForExit()
                     let nmv = {mv with Scr10=scr}
+                    scr10s.[fen]<-scr
                     nmv
     
             let nmvs = line.Mvs|>List.mapi getmv
             let nline = {line with Mvs=nmvs}
             nline
     
-        let nlines = var.Brchs|>List.map getline
-        let nvar = {var with Brchs=nlines}
+        let nlines = var.Lines|>List.map getline
+        let nvar = {var with Lines=nlines}
         nvar|>Varn.save|>ignore
-    //wvars()|>List.iter(fun nm -> updscr10(nm,true))
-    //bvars()|>List.iter(fun nm -> updscr10(nm,false))
+    wvars()|>List.iter(fun nm -> updscr10(nm,true))
+    bvars()|>List.iter(fun nm -> updscr10(nm,false))
 
     let updscr25(nm,isw) =
         let var = load(nm,isw)
         let getline line =
             let pos = Pos.Start() 
-            let getmv i (mv:Move1) =
+            let getmv i (mv:Move) =
                 Console.WriteLine(nm + " " + i.ToString() + " " + mv.Mpgn)
                 mv|>pos.DoMv
-                if mv.Scr25<>0 || mv.Bresp<>"" then mv
+                let fen = pos.ToString()
+                if scr25s.ContainsKey(fen) && bresps.ContainsKey(fen) then
+                    let scr25 = scr25s.[fen]
+                    let bresp = bresps.[fen]
+                    if scr25=mv.Scr25 && bresp=mv.Bresp then mv
+                    else
+                        {mv with Scr25=scr25;Bresp=bresp}
+                elif mv.Scr25<>0 || mv.Bresp<>"" then 
+                    scr25s.[fen]<-mv.Scr25
+                    bresps.[fen]<-mv.Bresp
+                    mv
                 else
                     let procp = new System.Diagnostics.Process()
                     let eng = "stockfish.exe"
@@ -108,30 +134,32 @@ let main argv =
                     // call calcs
                     // need to send game position moves as UCI
                     let mvstr = line.Mvs.[0..i]
-                                |> List.map (fun (m : Move1) -> m.UCI)
+                                |> List.map (fun (m : Move) -> m.UCI)
                                 |> List.reduce (fun a b -> a + " " + b)
 
                     ComputeAnswer(mvstr, 25, procp)
                     procp.WaitForExit()
                     let nmv = {mv with Scr25=scr;Bresp=br}
+                    scr25s.[fen]<-scr
+                    bresps.[fen]<-br
                     nmv
     
             let nmvs = line.Mvs|>List.mapi getmv
             let nline = {line with Mvs=nmvs}
             nline
     
-        let nlines = var.Brchs|>List.map getline
-        let nvar = {var with Brchs=nlines}
+        let nlines = var.Lines|>List.map getline
+        let nvar = {var with Lines=nlines}
         nvar|>Varn.save|>ignore
-    //wvars()|>List.iter(fun nm -> updscr25(nm,true))
-    //bvars()|>List.iter(fun nm -> updscr25(nm,false))
+    wvars()|>List.iter(fun nm -> updscr25(nm,true))
+    bvars()|>List.iter(fun nm -> updscr25(nm,false))
 
     let fixscr(nm,isw) =
         let var = load(nm,isw)
         let mutable same=true
-        let mutable prevline = var.Brchs.[0]
+        let mutable prevline = var.Lines.[0]
         let getline l line =
-            let getmv i (mv:Move1) =
+            let getmv i (mv:Move) =
                 if i=0 then same<-true
                 Console.WriteLine(nm + " " + i.ToString() + " " + mv.Mpgn)
                 if same then
@@ -149,17 +177,17 @@ let main argv =
                 prevline <- {line with Mvs=nmvs}
                 prevline
     
-        let nlines = var.Brchs|>List.mapi getline
-        let nvar = {var with Brchs=nlines}
+        let nlines = var.Lines|>List.mapi getline
+        let nvar = {var with Lines=nlines}
         nvar|>Varn.save|>ignore
-    wvars()|>List.iter(fun nm -> fixscr(nm,true))
-    bvars()|>List.iter(fun nm -> fixscr(nm,false))
+    //wvars()|>List.iter(fun nm -> fixscr(nm,true))
+    //bvars()|>List.iter(fun nm -> fixscr(nm,false))
 
 
     let updmve(nm,isw) =
         let var = load(nm,isw)
         let getline line =
-            let getmv i (mv:Move1) =
+            let getmv i (mv:Move) =
                 Console.WriteLine(nm + " " + i.ToString() + " " + mv.Mpgn)
                 if i=0 then mv
                 else
@@ -177,8 +205,8 @@ let main argv =
             let nline = {line with Mvs=nmvs}
             nline
     
-        let nlines = var.Brchs|>List.map getline
-        let nvar = {var with Brchs=nlines}
+        let nlines = var.Lines|>List.map getline
+        let nvar = {var with Lines=nlines}
         nvar|>Varn.save|>ignore
     wvars()|>List.iter(fun nm -> updmve(nm,true))
     bvars()|>List.iter(fun nm -> updmve(nm,false))

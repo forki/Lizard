@@ -27,6 +27,8 @@ NUGET
     NUnit.Extension.VSProjectLoader (3.6)
     NUnit3TestAdapter (3.8)
     SourceGrid (4.4)
+    Suave (2.2.1)
+      FSharp.Core (>= 4.0.0.1)
 GITHUB
   remote: fsprojects/FsUnit
     src/FsUnit.NUnit/FsUnitTyped.fs (ccd7f01fe792b149731261c816b851bf4e8e5e43)

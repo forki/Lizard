@@ -154,36 +154,6 @@ let main argv =
     wvars()|>List.iter(fun nm -> updscr25(nm,true))
     bvars()|>List.iter(fun nm -> updscr25(nm,false))
 
-    let fixscr(nm,isw) =
-        let var = load(nm,isw)
-        let mutable same=true
-        let mutable prevline = var.Lines.[0]
-        let getline l line =
-            let getmv i (mv:Move) =
-                if i=0 then same<-true
-                Console.WriteLine(nm + " " + i.ToString() + " " + mv.Mpgn)
-                if same then
-                    let prevmv = prevline.Mvs.[i]
-                    if prevmv.Mpgn=mv.Mpgn then
-                        {mv with Scr10=prevmv.Scr10;Scr25=prevmv.Scr25;Bresp=prevmv.Bresp}
-                    else 
-                        same <- false
-                        mv
-                 else mv
-            if l=0 then 
-                line
-            else
-                let nmvs = line.Mvs|>List.mapi getmv
-                prevline <- {line with Mvs=nmvs}
-                prevline
-    
-        let nlines = var.Lines|>List.mapi getline
-        let nvar = {var with Lines=nlines}
-        nvar|>Varn.save|>ignore
-    //wvars()|>List.iter(fun nm -> fixscr(nm,true))
-    //bvars()|>List.iter(fun nm -> fixscr(nm,false))
-
-
     let updmve(nm,isw) =
         let var = load(nm,isw)
         let getline line =

@@ -18,16 +18,19 @@ module Varn =
           ECO = ""
           Lines = [] }
     
+    //utility function to convert move list to string list
+    let mvl2sl (mvl:Move list) = mvl|>List.map(fun m -> m.Mpgn)
+
     ///findsv - finds the selvar given move list and set of move lists
     let findsv (mb : Move list) (curbs : Line list) = 
         //function to find match
-        let mtch (l : Line) = l.Mvs.Length >= mb.Length && l.Mvs.[0..mb.Length - 1] = mb
+        let mtch (l : Line) = l.Mvs.Length >= mb.Length && (l.Mvs.[0..mb.Length - 1]|>mvl2sl) = (mb|>mvl2sl)
         curbs |> List.tryFindIndex mtch
     
     ///findnmvs - finds the next moves given move list and set of move lists
     let findnmvs (mb : Move list) (curbs : Line list) = 
         //function to find match with extra move
-        let mtch (l : Line) = l.Mvs.Length > mb.Length && l.Mvs.[0..mb.Length - 1] = mb
+        let mtch (l : Line) = l.Mvs.Length > mb.Length && (l.Mvs.[0..mb.Length - 1]|>mvl2sl) = (mb|>mvl2sl)
         curbs
         |> List.filter mtch
         |> List.map (fun l -> l.Mvs.[mb.Length])
@@ -35,8 +38,8 @@ module Varn =
         |> Set.toList
     
     //function to find length same for two move lists
-    let rec smmv m1 m2 no = 
-        if List.isEmpty m1 || List.isEmpty m2 || m1.Head <> m2.Head then no
+    let rec smmv (m1:Move list) (m2:Move list) no = 
+        if List.isEmpty m1 || List.isEmpty m2 || m1.Head.Mpgn <> m2.Head.Mpgn then no
         else smmv m1.Tail m2.Tail (no + 1)
     
     //function to find index of best match
@@ -66,9 +69,9 @@ module Varn =
             if List.isEmpty rear then front, fnd
             else 
                 let curb:Move list = (rear.Head).Mvs
-                if curb.Length < mb.Length && curb = mb.[0..curb.Length - 1] then 
+                if curb.Length < mb.Length && (curb|>mvl2sl) = (mb.[0..curb.Length - 1]|>mvl2sl) then 
                     (front @ {ECO="";Mvs=mb} :: rear.Tail), true
-                elif curb.Length >= mb.Length && curb.[0..mb.Length - 1] = mb.[0..mb.Length - 1]  then 
+                elif curb.Length >= mb.Length && (curb.[0..mb.Length - 1]|>mvl2sl) = (mb.[0..mb.Length - 1]|>mvl2sl)  then 
                     (front @ rear), true
                 else addex (front @ [ rear.Head ]) rear.Tail false
         

@@ -54,29 +54,31 @@ let main argv =
         nvar|>Varn.save|>ignore
 
 
-    //wvars()|>List.iter(fun nm -> updfics(nm,true))
-    //bvars()|>List.iter(fun nm -> updfics(nm,false))
+    wvars()|>List.iter(fun nm -> updfics(nm,true))
+    bvars()|>List.iter(fun nm -> updfics(nm,false))
 
-    let v = load("Benko",true)
-    let v = load("CzechBenoni",true)
-    let v = load("Grunfeld",true)
-    let v = load("ModernBenoni",true)
-    let v = load("Nimzo",true)
-    let v = load("Old Indian",true)
-    let v = load("QGA",true)
-    let v = load("QGD",true)
-    let v = load("Slav",true)
-    let v = load("Unusual",true)
-    let v = load("Abrahams",false)
-    let v = load("Flank",false)
-    let v = load("French-d3",false)
-    let v = load("French-e5",false)
-    let v = load("FrenchMisc",false)
-    let v = load("FrenchNc3",false)
-    let v = load("FrenchNc3_e5",false)
-    let v = load("FrenchNd2",false)
-    let v2 = {v with ECO=v.Lines.[0].Mvs.[4].ECO}
-    //v2|>Varn.save|>ignore
+    //let v = load("Benko",true)
+    //let v = load("CzechBenoni",true)
+    //let v = load("Grunfeld",true)
+    //let v = load("ModernBenoni",true)
+    //let v = load("Nimzo",true)
+    //let v = load("Old Indian",true)
+    //let v = load("QGA",true)
+    //let v = load("QGD",true)
+    //let v = load("Slav",true)
+    //let v = load("Unusual",true)
+    //let v = load("Abrahams",false)
+    //let v = load("Flank",false)
+    //let v = load("French-d3",false)
+    //let v = load("French-e5",false)
+    //let v = load("FrenchMisc",false)
+    //let v = load("FrenchNc3",false)
+    //let v = load("FrenchNc3_e5",false)
+    //let v = load("FrenchNd2",false)
+    //let v = load("Benko_f3",true)
+    let v = load("QGA_Nc3",false)
+    let v2 = {v with ECO=v.Lines.[0].Mvs.[5].ECO}
+    v2|>Varn.save|>ignore
 
     let getmiss(nm,isw) =
         let var = load(nm,isw)
@@ -87,6 +89,15 @@ let main argv =
             let mutable fics = FICS.Load("http://www.ficsgames.org/cgi-bin/explorer.cgi?FEN=" + fen)
             let mutable fin = false
             let domv i (mv:Move) =
+                let stripSAN s =
+                    let strip chars = 
+                        String.collect (fun c -> 
+                            if Seq.exists ((=) c) chars then ""
+                            else string c)
+        
+                    let m = s |> strip "+#=!?"
+                    let m = m.Replace("e.p.", "")
+                    m
                 if not fin  then
                     let pgn = mv.Mpgn
                     let fmvs = fics.MvList
@@ -100,7 +111,7 @@ let main argv =
                             let nmvs = Varn.findnmvs mb curbs
                             let set = nmvs|>List.map(fun m -> m.Mpgn)|>Set.ofList
                             let lim = max (fics.NumGames/20) 50
-                            let fset = fmvs|>Array.filter(fun m -> m.N>lim)|>Array.map(fun m -> m.San)|>Set.ofArray
+                            let fset = fmvs|>Array.filter(fun m -> m.N>lim)|>Array.map(fun m -> m.San|>stripSAN)|>Set.ofArray
                             let extra = (fset-set)|>Set.toList
                             if not (List.isEmpty extra) then
                                 ans.[fen] <- extra
@@ -116,14 +127,13 @@ let main argv =
                             with _ -> fin <- true
                             fics <- FICS.Load("http://www.ficsgames.org/cgi-bin/explorer.cgi?FEN=" + fen)
             line.Mvs|>List.iteri domv
-
-        var.Lines|>List.iteri doline
-        let lns = ans|>Seq.map(fun d -> d.Key + " : " + (d.Value|>List.reduce(fun a b -> a + " " + b)))
         let fn = "miss" + var.Name + ".txt"
-        File.AppendAllLines(fn,lns)
+        if not (File.Exists(fn)) then
+            var.Lines|>List.iteri doline
+            let lns = ans|>Seq.map(fun d -> d.Key + " : " + (d.Value|>List.reduce(fun a b -> a + " " + b)))
+            File.AppendAllLines(fn,lns)
 
     wvars()|>List.iter(fun nm -> getmiss(nm,true))
     bvars()|>List.iter(fun nm -> getmiss(nm,false))
-           
 
     0 // return an integer exit code

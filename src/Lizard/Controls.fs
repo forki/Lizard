@@ -366,6 +366,9 @@ module Controls =
                         dg.[r,c].View <- vw
                     hlcell <- (cl.Row, cl.Column,dg.[cl.Row, cl.Column].View)|>Some
                     dg.[cl.Row, cl.Column].View <- viewSelCell
+                    //highlight headers
+                    dg.[cl.Row, 0].View <- viewColHeaderSel
+                    dg.[0, cl.Column].View <- viewColHeaderSel
                     updateLV()
         
         // selcel called to select a defined cell given a variation and move

@@ -2,7 +2,7 @@ RESTRICTION: == net461
 NUGET
   remote: https://www.nuget.org/api/v2
     DockPanelSuite (3.0.1)
-    FSharp.Core (4.2.3)
+    FSharp.Core (4.3.2)
     FSharp.Data (2.4.2)
     FsPickler (4.0)
       FSharp.Core (>= 3.1)
@@ -27,8 +27,6 @@ NUGET
     NUnit.Extension.VSProjectLoader (3.6)
     NUnit3TestAdapter (3.8)
     SourceGrid (4.4)
-    Suave (2.2.1)
-      FSharp.Core (>= 4.0.0.1)
 GITHUB
   remote: fsprojects/FsUnit
-    src/FsUnit.NUnit/FsUnitTyped.fs (ccd7f01fe792b149731261c816b851bf4e8e5e43)
+    src/FsUnit.NUnit/FsUnitTyped.fs (4c0812f4b96de85cc20f02fca87f852735e2eaeb)

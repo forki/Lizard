@@ -76,7 +76,8 @@ let main argv =
     //let v = load("FrenchNc3_e5",false)
     //let v = load("FrenchNd2",false)
     //let v = load("Benko_f3",true)
-    let v = load("QGA_Nc3",false)
+    //let v = load("QGA_Nc3",false)
+    let v = load("Stonewall",false)
     let v2 = {v with ECO=v.Lines.[0].Mvs.[5].ECO}
     v2|>Varn.save|>ignore
 

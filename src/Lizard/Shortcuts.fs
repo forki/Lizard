@@ -30,12 +30,8 @@ module Shortcuts =
         new Cells.Views.ColumnHeader(Background = new ColumnHeader(BackColor = Color.Green))
     let viewColHeaderRed = 
         new Cells.Views.ColumnHeader(Background = new ColumnHeader(BackColor = Color.Green), ForeColor = Color.Red)
-    let viewColHeaderSel = 
-        new Cells.Views.ColumnHeader(Background = new ColumnHeader(BackColor = Color.LightGreen), ForeColor = Color.Black)
     let viewRowHeader = 
         new Cells.Views.RowHeader(Background = new RowHeader(BackColor = Color.Green))
-    let viewRowHeaderSel = 
-        new Cells.Views.RowHeader(Background = new RowHeader(BackColor = Color.LightGreen), ForeColor = Color.Black)
     let viewCell1 = new Cells.Views.Cell(BackColor = Color.White,Border=RectangleBorder(BorderLine.Black1Width, BorderLine.NoBorder))
     let viewCell1G = 
         new Cells.Views.Cell(BackColor = Color.White, 

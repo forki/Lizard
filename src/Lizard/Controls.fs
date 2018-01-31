@@ -350,7 +350,6 @@ module Controls =
                     dg.[0,c].View <- viewColHeaderRed
                     dg.[0,c-1].View <- viewColHeaderRed
 
-            dg.AutoSizeCells()
             hlcell <- None
         
         // selmv called when cell is selected
@@ -364,11 +363,11 @@ module Controls =
                     if hlcell.IsSome then 
                         let r,c,vw = hlcell.Value
                         dg.[r,c].View <- vw
+                        dg.[r,0].Value <- r.ToString()
                     hlcell <- (cl.Row, cl.Column,dg.[cl.Row, cl.Column].View)|>Some
                     dg.[cl.Row, cl.Column].View <- viewSelCell
-                    //highlight headers
-                    dg.[cl.Row, 0].View <- viewColHeaderSel
-                    dg.[0, cl.Column].View <- viewColHeaderSel
+                    dg.[cl.Row,0].Value <- cl.Row.ToString() + "*"
+                    dg.AutoSizeCells()
                     updateLV()
         
         // selcel called to select a defined cell given a variation and move
